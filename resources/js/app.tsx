@@ -1,5 +1,6 @@
 import '../css/app.css';
 
+import { MantineProvider } from '@mantine/core';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
@@ -20,7 +21,9 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <MantineProvider>
+                    <App {...props} />
+                </MantineProvider>
             </StrictMode>,
         );
     },
