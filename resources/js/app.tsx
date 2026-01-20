@@ -8,12 +8,10 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import axios from 'axios';
 
-// Configure axios to use CSRF token from meta tag
+// Configure axios to use CSRF token from cookie (auto-refreshed by Laravel)
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-const token = document.head.querySelector('meta[name="csrf-token"]');
-if (token) {
-    axios.defaults.headers.common['X-CSRF-TOKEN'] = token.getAttribute('content');
-}
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

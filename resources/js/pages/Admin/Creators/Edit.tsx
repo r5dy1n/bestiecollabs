@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { update as creatorsUpdate, index as creatorsIndex } from '@/actions/App/Http/Controllers/Admin/CreatorController';
 import { FormEvent } from 'react';
 
 interface Creator {
@@ -32,7 +31,7 @@ export default function Edit({ creator }: Props) {
         },
         {
             title: 'Creators',
-            href: creatorsIndex().url,
+            href: '/admin/creators',
         },
         {
             title: creator.creator_name,
@@ -57,7 +56,7 @@ export default function Edit({ creator }: Props) {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        put(creatorsUpdate(creator.id).url);
+        put(`/admin/creators/${creator.id}`);
     };
 
     return (
@@ -259,7 +258,7 @@ export default function Edit({ creator }: Props) {
                             {processing ? 'Updating...' : 'Update Creator'}
                         </button>
                         <a
-                            href={creatorsIndex().url}
+                            href="/admin/creators"
                             className="rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                         >
                             Cancel

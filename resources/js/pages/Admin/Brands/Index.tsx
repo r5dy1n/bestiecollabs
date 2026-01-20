@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { index as brandsIndex, create as brandsCreate, edit as brandsEdit, destroy as brandsDestroy } from '@/actions/App/Http/Controllers/Admin/BrandController';
 
 interface Brand {
     id: string;
@@ -39,14 +38,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Brands',
-        href: brandsIndex().url,
+        href: '/admin/brands',
     },
 ];
 
 export default function Index({ brands }: Props) {
     const handleDelete = (id: string, name: string) => {
         if (confirm(`Are you sure you want to delete ${name}?`)) {
-            router.delete(brandsDestroy(id).url);
+            router.delete(`/admin/brands/${id}`);
         }
     };
 
@@ -67,7 +66,7 @@ export default function Index({ brands }: Props) {
                             Import CSV
                         </Link>
                         <Link
-                            href={brandsCreate().url}
+                            href="/admin/brands/create"
                             className="rounded-md bg-black px-4 py-2 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                         >
                             Add Brand
@@ -134,7 +133,7 @@ export default function Index({ brands }: Props) {
                                         <td className="px-4 py-3">
                                             <div className="flex gap-2">
                                                 <Link
-                                                    href={brandsEdit(brand.id).url}
+                                                    href={`/admin/brands/${brand.id}/edit`}
                                                     className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                                                 >
                                                     Edit
@@ -163,7 +162,7 @@ export default function Index({ brands }: Props) {
                             {Array.from({ length: brands.last_page }, (_, i) => i + 1).map((page) => (
                                 <Link
                                     key={page}
-                                    href={`${brandsIndex().url}?page=${page}`}
+                                    href={`/admin/brands?page=${page}`}
                                     className={`rounded px-3 py-1 text-sm ${
                                         page === brands.current_page
                                             ? 'bg-black text-white dark:bg-white dark:text-black'

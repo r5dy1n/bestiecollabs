@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { index as creatorsIndex, create as creatorsCreate, edit as creatorsEdit, destroy as creatorsDestroy } from '@/actions/App/Http/Controllers/Admin/CreatorController';
 
 interface Creator {
     id: string;
@@ -35,14 +34,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Creators',
-        href: creatorsIndex().url,
+        href: '/admin/creators',
     },
 ];
 
 export default function Index({ creators }: Props) {
     const handleDelete = (id: string, name: string) => {
         if (confirm(`Are you sure you want to delete ${name}?`)) {
-            router.delete(creatorsDestroy(id).url);
+            router.delete(`/admin/creators/${id}`);
         }
     };
 
@@ -63,7 +62,7 @@ export default function Index({ creators }: Props) {
                             Import CSV
                         </Link>
                         <Link
-                            href={creatorsCreate().url}
+                            href="/admin/creators/create"
                             className="rounded-md bg-black px-4 py-2 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                         >
                             Add Creator
@@ -122,7 +121,7 @@ export default function Index({ creators }: Props) {
                                         <td className="px-4 py-3">
                                             <div className="flex gap-2">
                                                 <Link
-                                                    href={creatorsEdit(creator.id).url}
+                                                    href={`/admin/creators/${creator.id}/edit`}
                                                     className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                                                 >
                                                     Edit
@@ -151,7 +150,7 @@ export default function Index({ creators }: Props) {
                             {Array.from({ length: creators.last_page }, (_, i) => i + 1).map((page) => (
                                 <Link
                                     key={page}
-                                    href={`${creatorsIndex().url}?page=${page}`}
+                                    href={`/admin/creators?page=${page}`}
                                     className={`rounded px-3 py-1 text-sm ${
                                         page === creators.current_page
                                             ? 'bg-black text-white dark:bg-white dark:text-black'

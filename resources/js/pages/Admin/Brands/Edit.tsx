@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { update as brandsUpdate, index as brandsIndex } from '@/actions/App/Http/Controllers/Admin/BrandController';
 import { FormEvent } from 'react';
 
 interface Brand {
@@ -31,7 +30,7 @@ export default function Edit({ brand }: Props) {
         },
         {
             title: 'Brands',
-            href: brandsIndex().url,
+            href: '/admin/brands',
         },
         {
             title: brand.brand_name,
@@ -55,7 +54,7 @@ export default function Edit({ brand }: Props) {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        put(brandsUpdate(brand.id).url);
+        put(`/admin/brands/${brand.id}`);
     };
 
     return (
@@ -232,7 +231,7 @@ export default function Edit({ brand }: Props) {
                             {processing ? 'Updating...' : 'Update Brand'}
                         </button>
                         <a
-                            href={brandsIndex().url}
+                            href="/admin/brands"
                             className="rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                         >
                             Cancel

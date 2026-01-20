@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { index as brandsIndex, edit as brandsEdit } from '@/actions/App/Http/Controllers/Admin/BrandController';
 import { formatDistanceToNow } from 'date-fns';
 
 interface OutreachAttempt {
@@ -106,7 +105,7 @@ export default function Show({ brand, can_receive_messages }: Props) {
         },
         {
             title: 'Brands',
-            href: brandsIndex().url,
+            href: '/admin/brands',
         },
         {
             title: brand.brand_name,
@@ -124,7 +123,7 @@ export default function Show({ brand, can_receive_messages }: Props) {
                         <p className="text-muted-foreground">Brand Details</p>
                     </div>
                     <Link
-                        href={brandsEdit(brand.id).url}
+                        href={`/admin/brands/${brand.id}/edit`}
                         className="rounded-md bg-black px-4 py-2 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                     >
                         Edit Brand
@@ -395,7 +394,7 @@ export default function Show({ brand, can_receive_messages }: Props) {
 
                 <div className="flex gap-3">
                     <Link
-                        href={brandsIndex().url}
+                        href="/admin/brands"
                         className="rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                     >
                         Back to Brands

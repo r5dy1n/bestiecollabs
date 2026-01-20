@@ -2,7 +2,6 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
-import { index as creatorsIndex } from '@/actions/App/Http/Controllers/Admin/CreatorController';
 
 interface ImportError {
     row: number;
@@ -24,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Creators',
-        href: creatorsIndex().url,
+        href: '/admin/creators',
     },
     {
         title: 'Import',
@@ -100,7 +99,7 @@ export default function Import() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => router.visit(creatorsIndex().url)}
+                                onClick={() => router.visit('/admin/creators')}
                                 className="rounded-lg border border-sidebar-border/70 px-6 py-2 font-medium transition-colors hover:bg-neutral-100 dark:border-sidebar-border dark:hover:bg-neutral-900"
                             >
                                 Cancel

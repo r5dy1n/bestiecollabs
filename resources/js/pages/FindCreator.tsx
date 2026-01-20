@@ -1,15 +1,13 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import type { BreadcrumbItem, SocialSearchResult } from '@/types';
-import { search as searchCreators } from '@/actions/App/Http/Controllers/FindCreatorController';
 import axios from 'axios';
 import AppLayout from '@/layouts/app-layout';
-import { findCreators } from '@/routes';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Find Creators',
-        href: findCreators().url,
+        href: '/find-creators',
     },
 ];
 
@@ -53,7 +51,7 @@ export default function FindCreator() {
         setSearched(true);
 
         try {
-            const response = await axios.post(searchCreators.url(), {
+            const response = await axios.post('/find-creators/search', {
                 query,
                 platform,
                 category: category !== 'all' ? category : null,

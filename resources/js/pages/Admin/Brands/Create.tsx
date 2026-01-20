@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { store as brandsStore, index as brandsIndex } from '@/actions/App/Http/Controllers/Admin/BrandController';
 import { FormEvent } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -11,7 +10,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Brands',
-        href: brandsIndex().url,
+        href: '/admin/brands',
     },
     {
         title: 'Create',
@@ -36,7 +35,7 @@ export default function Create() {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        post(brandsStore().url);
+        post('/admin/brands');
     };
 
     return (
@@ -213,7 +212,7 @@ export default function Create() {
                             {processing ? 'Creating...' : 'Create Brand'}
                         </button>
                         <a
-                            href={brandsIndex().url}
+                            href="/admin/brands"
                             className="rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                         >
                             Cancel

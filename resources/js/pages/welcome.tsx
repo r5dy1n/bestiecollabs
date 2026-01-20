@@ -9,7 +9,6 @@ import {
     Box,
     Grid,
 } from '@mantine/core';
-import { login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 
@@ -57,7 +56,7 @@ export default function Welcome({
                                 ) : (
                                     <Button
                                         component={Link}
-                                        href={login()}
+                                        href="/login"
                                         variant="filled"
                                     >
                                         SIGN IN
@@ -115,7 +114,7 @@ export default function Welcome({
                             <Box>
                                 <Button
                                     component={Link}
-                                    href={canRegister ? register() : login()}
+                                    href={canRegister ? '/register' : '/login'}
                                     size="lg"
                                     variant="filled"
                                     color="blue"
@@ -257,7 +256,7 @@ export default function Welcome({
                             <Box ta="center" mt="xl">
                                 <Button
                                     component={Link}
-                                    href={canRegister ? register() : login()}
+                                    href={canRegister ? '/register' : '/login'}
                                     size="lg"
                                     variant="filled"
                                     color="blue"
@@ -397,7 +396,7 @@ export default function Welcome({
                             <Box ta="center" mt="xl">
                                 <Button
                                     component={Link}
-                                    href={canRegister ? register() : login()}
+                                    href={canRegister ? '/register' : '/login'}
                                     size="lg"
                                     variant="filled"
                                     color="blue"
@@ -526,7 +525,7 @@ export default function Welcome({
                             <Box ta="center" mt="xl">
                                 <Button
                                     component={Link}
-                                    href={canRegister ? register() : login()}
+                                    href={canRegister ? '/register' : '/login'}
                                     size="lg"
                                     variant="filled"
                                     color="blue"
