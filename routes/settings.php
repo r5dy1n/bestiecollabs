@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SocialAccountsController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -19,10 +20,19 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
-    Route::get('settings/appearance', function () {
-        return Inertia::render('settings/appearance');
-    })->name('appearance.edit');
+    // Route::get('settings/appearance', function () {
+    //     return Inertia::render('settings/appearance');
+    // })->name('appearance.edit');
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/social-accounts', [SocialAccountsController::class, 'edit'])
+        ->name('social-accounts.edit');
+    Route::post('settings/social-accounts/connect', [SocialAccountsController::class, 'connect'])
+        ->name('social-accounts.connect');
+    Route::delete('settings/social-accounts/{platform}', [SocialAccountsController::class, 'disconnect'])
+        ->name('social-accounts.disconnect');
+    Route::post('settings/social-accounts/{platform}/sync', [SocialAccountsController::class, 'sync'])
+        ->name('social-accounts.sync');
 });

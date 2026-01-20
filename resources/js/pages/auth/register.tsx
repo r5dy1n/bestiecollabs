@@ -27,13 +27,54 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
+                                <Label>I am a...</Label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-input p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <input
+                                            type="radio"
+                                            name="user_type"
+                                            value="creator"
+                                            required
+                                            tabIndex={1}
+                                            className="sr-only"
+                                        />
+                                        <span className="text-2xl">🎨</span>
+                                        <span className="font-medium">
+                                            Creator
+                                        </span>
+                                        <span className="text-center text-xs text-muted-foreground">
+                                            I create content and collaborate
+                                            with brands
+                                        </span>
+                                    </label>
+                                    <label className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-input p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <input
+                                            type="radio"
+                                            name="user_type"
+                                            value="brand"
+                                            required
+                                            tabIndex={2}
+                                            className="sr-only"
+                                        />
+                                        <span className="text-2xl">🏢</span>
+                                        <span className="font-medium">
+                                            Brand
+                                        </span>
+                                        <span className="text-center text-xs text-muted-foreground">
+                                            I work for a brand seeking creators
+                                        </span>
+                                    </label>
+                                </div>
+                                <InputError message={errors.user_type} />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
                                     required
-                                    autoFocus
-                                    tabIndex={1}
+                                    tabIndex={3}
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Full name"
@@ -50,7 +91,7 @@ export default function Register() {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
+                                    tabIndex={4}
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
@@ -64,7 +105,7 @@ export default function Register() {
                                     id="password"
                                     type="password"
                                     required
-                                    tabIndex={3}
+                                    tabIndex={5}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
@@ -80,7 +121,7 @@ export default function Register() {
                                     id="password_confirmation"
                                     type="password"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={6}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
@@ -93,7 +134,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={7}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -103,7 +144,7 @@ export default function Register() {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login()} tabIndex={8}>
                                 Log in
                             </TextLink>
                         </div>
