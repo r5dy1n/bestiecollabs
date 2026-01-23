@@ -10,6 +10,16 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('Contact');
+})->name('contact');
+
+Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
+
 Route::prefix('brands')->name('brands.')->group(function () {
     Route::get('/', [App\Http\Controllers\BrandDirectoryController::class, 'index'])->name('index');
     Route::get('/{brand}', [App\Http\Controllers\BrandDirectoryController::class, 'show'])->name('show');

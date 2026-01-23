@@ -8,6 +8,7 @@ import {
     Group,
     Box,
     Grid,
+    Anchor,
 } from '@mantine/core';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -22,46 +23,51 @@ export default function Welcome({
     return (
         <>
             <Head title="Welcome to Bestie Collabs" />
-            <Box>
+            <Box className="min-h-screen bg-white dark:bg-neutral-950">
                 <Box
                     component="header"
-                    style={{
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 50,
-                        backgroundColor: 'white',
-                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                    }}
+                    className="sticky top-0 z-50 border-b border-neutral-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95"
                 >
                     <Container size="xl" py="md">
                         <Group justify="space-between" align="center">
                             <Link
                                 href="/"
-                                style={{
-                                    textDecoration: 'none',
-                                    color: '#228be6',
-                                }}
+                                className="text-xl font-bold text-blue-600 no-underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                             >
-                                <Title order={2}>Bestie Collabs</Title>
+                                Bestie Collabs
                             </Link>
                             <nav>
-                                {auth.user ? (
-                                    <Button
-                                        component={Link}
-                                        href="/dashboard"
-                                        variant="filled"
+                                <Group gap="lg">
+                                    <Link
+                                        href="/brands"
+                                        className="text-neutral-600 no-underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
                                     >
-                                        Dashboard
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        component={Link}
-                                        href="/login"
-                                        variant="filled"
+                                        Brands
+                                    </Link>
+                                    <Link
+                                        href="/creators"
+                                        className="text-neutral-600 no-underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
                                     >
-                                        SIGN IN
-                                    </Button>
-                                )}
+                                        Creators
+                                    </Link>
+                                    {auth.user ? (
+                                        <Button
+                                            component={Link}
+                                            href="/dashboard"
+                                            variant="filled"
+                                        >
+                                            Dashboard
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            component={Link}
+                                            href="/login"
+                                            variant="filled"
+                                        >
+                                            Sign In
+                                        </Button>
+                                    )}
+                                </Group>
                             </nav>
                         </Group>
                     </Container>
@@ -541,12 +547,97 @@ export default function Welcome({
                     component="footer"
                     py={60}
                     px="md"
-                    style={{ backgroundColor: '#000', color: 'white' }}
+                    className="bg-neutral-900 text-white dark:bg-black"
                 >
                     <Container size="xl">
-                        <Text size="lg" ta="center">
-                            FOOTER GOES HERE
-                        </Text>
+                        <Grid gutter="xl">
+                            <Grid.Col span={{ base: 12, md: 4 }}>
+                                <Stack gap="md">
+                                    <Title order={3} size="1.25rem" className="text-white">
+                                        Bestie Collabs
+                                    </Title>
+                                    <Text size="sm" className="text-neutral-400">
+                                        A commission-based marketplace connecting brands and creators
+                                        for successful collaborations.
+                                    </Text>
+                                </Stack>
+                            </Grid.Col>
+
+                            <Grid.Col span={{ base: 6, md: 2 }}>
+                                <Stack gap="sm">
+                                    <Text fw={600} className="text-white">
+                                        Platform
+                                    </Text>
+                                    <Anchor
+                                        component={Link}
+                                        href="/brands"
+                                        className="text-neutral-400 no-underline hover:text-white"
+                                    >
+                                        Brands
+                                    </Anchor>
+                                    <Anchor
+                                        component={Link}
+                                        href="/creators"
+                                        className="text-neutral-400 no-underline hover:text-white"
+                                    >
+                                        Creators
+                                    </Anchor>
+                                </Stack>
+                            </Grid.Col>
+
+                            <Grid.Col span={{ base: 6, md: 2 }}>
+                                <Stack gap="sm">
+                                    <Text fw={600} className="text-white">
+                                        Company
+                                    </Text>
+                                    <Anchor
+                                        component={Link}
+                                        href="/about"
+                                        className="text-neutral-400 no-underline hover:text-white"
+                                    >
+                                        About
+                                    </Anchor>
+                                    <Anchor
+                                        component={Link}
+                                        href="/contact"
+                                        className="text-neutral-400 no-underline hover:text-white"
+                                    >
+                                        Contact
+                                    </Anchor>
+                                </Stack>
+                            </Grid.Col>
+
+                            <Grid.Col span={{ base: 12, md: 4 }}>
+                                <Stack gap="sm">
+                                    <Text fw={600} className="text-white">
+                                        Get Started
+                                    </Text>
+                                    <Text size="sm" className="text-neutral-400">
+                                        Ready to find your next collaboration?
+                                    </Text>
+                                    <Button
+                                        component={Link}
+                                        href={canRegister ? '/register' : '/login'}
+                                        variant="filled"
+                                        color="blue"
+                                        size="sm"
+                                        className="w-fit"
+                                    >
+                                        Sign Up Free
+                                    </Button>
+                                </Stack>
+                            </Grid.Col>
+                        </Grid>
+
+                        <Box
+                            mt="xl"
+                            pt="xl"
+                            className="border-t border-neutral-700"
+                        >
+                            <Text size="sm" ta="center" className="text-neutral-500">
+                                &copy; {new Date().getFullYear()} Bestie Collabs. All rights reserved.
+                            </Text>
+                        </Box>
                     </Container>
                 </Box>
             </Box>
