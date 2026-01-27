@@ -22,6 +22,11 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/two-factor',
         icon: null,
     },
+    {
+        title: 'Social Accounts',
+        href: '/settings/social-accounts',
+        icon: null,
+    },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {

@@ -12,6 +12,8 @@ class Collaboration extends Model
     /** @use HasFactory<\Database\Factories\CollaborationFactory> */
     use HasFactory, HasUuids;
 
+    protected $table = 'collabs';
+
     protected $fillable = [
         'brand_id',
         'creator_id',

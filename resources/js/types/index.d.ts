@@ -125,6 +125,49 @@ export interface SocialSyncJob {
     updated_at: string;
 }
 
+export interface SocialConnection {
+    id: string;
+    platform: string;
+    handle: string | null;
+    status: string;
+    followers: number | null;
+    posts_count: number | null;
+    engagement_rate: number | null;
+    platform_metadata: Record<string, unknown> | null;
+    last_sync_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatorProfile {
+    username: string;
+    display_name?: string;
+    bio?: string;
+    description?: string;
+    profile_picture_url?: string;
+    verified?: boolean;
+    follower_count?: number;
+    following_count?: number;
+    subscriber_count?: number;
+    post_count?: number;
+    video_count?: number;
+    tweet_count?: number;
+    total_likes?: number;
+    total_views?: number;
+    channel_id?: string;
+    channel_name?: string;
+    last_synced?: string;
+    engagement_metrics?: {
+        avg_likes?: number;
+        avg_comments?: number;
+        avg_shares?: number;
+        avg_views?: number;
+        avg_retweets?: number;
+        avg_replies?: number;
+        engagement_rate?: number;
+    };
+}
+
 export interface SocialSearchResult {
     username: string;
     display_name?: string;

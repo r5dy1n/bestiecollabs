@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SocialMedia\SocialMediaFactory;
 use App\Services\SocialMediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,32 @@ class FindCreatorController extends Controller
 
     public function index(): Response
     {
-        return Inertia::render('FindCreator');
+        return Inertia::render('FindCreator/Index');
+    }
+
+    public function show(string $username): Response
+    {
+        $platforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
+        $profiles = [];
+
+        foreach ($platforms as $platform) {
+            try {
+                $provider = SocialMediaFactory::make($platform);
+                $profile = $provider->fetchProfile($username);
+                $metrics = $provider->fetchMetrics($username);
+
+                $profiles[$platform] = array_merge($profile, [
+                    'engagement_metrics' => $metrics,
+                ]);
+            } catch (\Exception $e) {
+                $profiles[$platform] = null;
+            }
+        }
+
+        return Inertia::render('FindCreator/Show', [
+            'username' => $username,
+            'profiles' => $profiles,
+        ]);
     }
 
     public function search(Request $request): JsonResponse

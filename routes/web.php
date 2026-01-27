@@ -37,6 +37,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('find-creators', [App\Http\Controllers\FindCreatorController::class, 'index'])->name('find-creators');
     Route::post('find-creators/search', [App\Http\Controllers\FindCreatorController::class, 'search'])->name('find-creators.search');
+    Route::get('find-creators/{username}', [App\Http\Controllers\FindCreatorController::class, 'show'])
+        ->name('find-creators.show');
 
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [App\Http\Controllers\MessageController::class, 'index'])->name('index');

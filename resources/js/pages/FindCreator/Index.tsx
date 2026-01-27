@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import type { BreadcrumbItem, SocialSearchResult } from '@/types';
 import axios from 'axios';
@@ -330,9 +330,12 @@ export default function FindCreator() {
                                         </div>
 
                                         {/* Action Button */}
-                                        <button className="w-full rounded-lg bg-black px-4 py-2.5 font-semibold text-white transition-all hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200">
+                                        <Link
+                                            href={`/find-creators/${result.username?.replace(/^@/, '')}`}
+                                            className="block w-full rounded-lg bg-black px-4 py-2.5 text-center font-semibold text-white transition-all hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
+                                        >
                                             View Profile
-                                        </button>
+                                        </Link>
                                     </div>
                                 ))}
                             </div>

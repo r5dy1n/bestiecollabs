@@ -29,8 +29,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/social-accounts', [SocialAccountsController::class, 'edit'])
         ->name('social-accounts.edit');
-    Route::post('settings/social-accounts/connect', [SocialAccountsController::class, 'connect'])
-        ->name('social-accounts.connect');
+    Route::get('settings/social-accounts/redirect/{platform}', [SocialAccountsController::class, 'redirect'])
+        ->name('social-accounts.redirect');
+    Route::get('settings/social-accounts/callback/{platform}', [SocialAccountsController::class, 'callback'])
+        ->name('social-accounts.callback');
     Route::delete('settings/social-accounts/{platform}', [SocialAccountsController::class, 'disconnect'])
         ->name('social-accounts.disconnect');
     Route::post('settings/social-accounts/{platform}/sync', [SocialAccountsController::class, 'sync'])

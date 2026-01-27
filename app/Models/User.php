@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +65,11 @@ class User extends Authenticatable
     public function creator(): HasOne
     {
         return $this->hasOne(Creator::class);
+    }
+
+    public function socialConnections(): HasMany
+    {
+        return $this->hasMany(SocialConnection::class);
     }
 
     public function isCreator(): bool
