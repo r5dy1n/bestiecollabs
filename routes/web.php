@@ -31,9 +31,12 @@ Route::prefix('creators')->name('creators.')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::post('shopify/connect', [App\Http\Controllers\ShopifyController::class, 'connect'])->name('shopify.connect');
+    Route::get('shopify/callback', [App\Http\Controllers\ShopifyController::class, 'callback'])->name('shopify.callback');
+    Route::delete('shopify/disconnect', [App\Http\Controllers\ShopifyController::class, 'disconnect'])->name('shopify.disconnect');
+    Route::post('shopify/discounts', [App\Http\Controllers\ShopifyController::class, 'storeDiscount'])->name('shopify.discounts.store');
 
     Route::get('find-creators', [App\Http\Controllers\FindCreatorController::class, 'index'])->name('find-creators');
     Route::post('find-creators/search', [App\Http\Controllers\FindCreatorController::class, 'search'])->name('find-creators.search');

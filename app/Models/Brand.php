@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Brand extends Model
@@ -15,6 +16,7 @@ class Brand extends Model
     protected $appends = ['connection_status'];
 
     protected $fillable = [
+        'user_id',
         'brand_name',
         'website_url',
         'category_primary',
@@ -45,6 +47,11 @@ class Brand extends Model
             'response_rate' => 'decimal:2',
             'platform_activity_score' => 'integer',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function matches(): HasMany

@@ -62,9 +62,19 @@ class User extends Authenticatable
         return $this->is_admin;
     }
 
+    public function brand(): HasOne
+    {
+        return $this->hasOne(Brand::class);
+    }
+
     public function creator(): HasOne
     {
         return $this->hasOne(Creator::class);
+    }
+
+    public function shopifyConnection(): HasOne
+    {
+        return $this->hasOne(ShopifyConnection::class);
     }
 
     public function socialConnections(): HasMany

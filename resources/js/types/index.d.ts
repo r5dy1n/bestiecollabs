@@ -168,6 +168,31 @@ export interface CreatorProfile {
     };
 }
 
+export interface ShopifyConnection {
+    id: number;
+    shop_domain: string;
+    created_at: string;
+}
+
+export interface Discount {
+    id: string;
+    title: string;
+    summary: string;
+    type: 'code' | 'automatic';
+    discount_type: 'amount_off_products' | 'amount_off_order' | 'bxgy' | 'free_shipping';
+    status: string;
+    codes: string[];
+    value: string;
+    value_type: 'percentage' | 'fixed_amount' | 'bxgy' | 'free_shipping';
+    usage_count: number;
+    created_at: string;
+    combines_with: {
+        order_discounts: boolean;
+        product_discounts: boolean;
+        shipping_discounts: boolean;
+    };
+}
+
 export interface SocialSearchResult {
     username: string;
     display_name?: string;

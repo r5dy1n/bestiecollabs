@@ -31,7 +31,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Check for existing components to reuse before writing a new one.
 
 ## Verification Scripts
-- Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
+- Do not create verification scripts or tinker when tests cover that functionality and prove it works.
 
 ## Application Structure & Architecture
 - Stick to existing directory structure - don't create new base folders without approval.
@@ -116,12 +116,11 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
 
 
-<!-- === tests rules ===
+=== tests rules ===
 
 ## Test Enforcement
 
-- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test` with a specific filename or filter. -->
+- Do not write any tests. Do not create test files or update existing tests unless explicitly requested by the user.
 
 
 === inertia-laravel/core rules ===
@@ -202,9 +201,7 @@ Route::get('/users', function () {
 - Use environment variables only in configuration files - never use the `env()` function directly outside of config files. Always use `config('app.name')`, not `env('APP_NAME')`.
 
 ### Testing
-- When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
-- Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
-- When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
+- Do not write any tests unless explicitly requested by the user.
 
 ### Vite Error
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
@@ -298,18 +295,13 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
 
 ## PHPUnit Core
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
-- Every time a test has been updated, run that singular test.
-- When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
-- Tests should test all of the happy paths, failure paths, and weird paths.
-- You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files, these are core to the application.
+- Do not write any tests unless explicitly requested by the user.
+- You must not remove any tests or test files from the tests directory without approval.
 
 ### Running Tests
-- Run the minimal number of tests, using an appropriate filter, before finalizing.
 - To run all tests: `php artisan test`.
 - To run all tests in a file: `php artisan test tests/Feature/ExampleTest.php`.
-- To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
+- To filter on a particular test name: `php artisan test --filter=testName`.
 
 
 === inertia-react/core rules ===
