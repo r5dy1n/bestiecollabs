@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CollaborationPayment extends Model
 {
+    /** @use HasFactory<\Database\Factories\CollaborationPaymentFactory> */
     use HasFactory, HasUuids;
 
     protected $fillable = [

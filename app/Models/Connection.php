@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Connection extends Model
 {
+    /** @use HasFactory<\Database\Factories\ConnectionFactory> */
     use HasFactory, HasUuids;
 
     protected $fillable = [

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CollaborationAgreement extends Model
 {
+    /** @use HasFactory<\Database\Factories\CollaborationAgreementFactory> */
     use HasFactory, HasUuids;
 
     protected $fillable = [
