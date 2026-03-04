@@ -39,6 +39,16 @@ class Creator extends Model
         'posting_frequency_days',
         'social_metadata',
         'last_synced_at',
+        'total_followers',
+        'instagram_followers',
+        'tiktok_followers',
+        'youtube_subscribers',
+        'twitter_followers',
+        'avg_engagement_rate',
+        'avg_views_per_post',
+        'estimated_reach',
+        'content_previews',
+        'monthly_metrics',
     ];
 
     protected function casts(): array
@@ -56,6 +66,16 @@ class Creator extends Model
             'posting_frequency_days' => 'integer',
             'social_metadata' => 'array',
             'last_synced_at' => 'datetime',
+            'total_followers' => 'integer',
+            'instagram_followers' => 'integer',
+            'tiktok_followers' => 'integer',
+            'youtube_subscribers' => 'integer',
+            'twitter_followers' => 'integer',
+            'avg_engagement_rate' => 'decimal:2',
+            'avg_views_per_post' => 'decimal:2',
+            'estimated_reach' => 'decimal:2',
+            'content_previews' => 'array',
+            'monthly_metrics' => 'array',
         ];
     }
 

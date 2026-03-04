@@ -33,6 +33,11 @@ class Brand extends Model
         'average_rating',
         'response_rate',
         'platform_activity_score',
+        'total_gmv',
+        'conversion_rate',
+        'total_orders',
+        'average_order_value',
+        'monthly_metrics',
     ];
 
     protected function casts(): array
@@ -46,6 +51,11 @@ class Brand extends Model
             'average_rating' => 'decimal:2',
             'response_rate' => 'decimal:2',
             'platform_activity_score' => 'integer',
+            'total_gmv' => 'decimal:2',
+            'conversion_rate' => 'decimal:2',
+            'total_orders' => 'integer',
+            'average_order_value' => 'decimal:2',
+            'monthly_metrics' => 'array',
         ];
     }
 
