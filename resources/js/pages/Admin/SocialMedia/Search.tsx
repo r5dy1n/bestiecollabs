@@ -1,10 +1,19 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
+interface SearchResult {
+    username: string;
+    followers?: number;
+    engagement_rate?: number;
+    bio?: string;
+    profile_url?: string;
+    [key: string]: unknown;
+}
+
 export default function Search() {
     const [platform, setPlatform] = useState('instagram');
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
 
     const handleSearch = async (e: React.FormEvent) => {
@@ -96,7 +105,7 @@ export default function Search() {
 
                 {results.length > 0 && (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {results.map((result: any, index) => (
+                        {results.map((result, index) => (
                             <div
                                 key={index}
                                 className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-950"

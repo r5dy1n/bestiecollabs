@@ -38,7 +38,7 @@ interface Creator {
     category_primary: string;
     category_secondary: string | null;
     category_tertiary: string | null;
-    followers_demographs: any;
+    followers_demographs: Record<string, unknown> | null;
     follower_age_min: number;
     follower_age_max: number;
     language: string;

@@ -324,7 +324,7 @@ export default function Show({ collaboration }: Props) {
                             <form onSubmit={handleUpdateStatus}>
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as any)}
+                                    onChange={(e) => setStatus(e.target.value as 'pending' | 'active' | 'completed' | 'cancelled')}
                                     className="mb-3 w-full rounded-md border border-sidebar-border bg-white px-3 py-2 dark:border-sidebar-border dark:bg-neutral-800"
                                 >
                                     <option value="pending">Pending</option>

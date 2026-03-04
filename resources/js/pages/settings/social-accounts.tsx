@@ -63,6 +63,7 @@ export default function SocialAccounts({ connections }: Props) {
 
     const handleConnect = (platform: string) => {
         // OAuth requires full page redirect, not an Inertia visit
+        // eslint-disable-next-line react-hooks/immutability
         window.location.href = `/settings/social-accounts/redirect/${platform}`;
     };
 

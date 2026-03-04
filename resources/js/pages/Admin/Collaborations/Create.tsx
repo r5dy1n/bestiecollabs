@@ -150,7 +150,7 @@ export default function Create({ brands, creators, prefilled_brand_id, prefilled
                                 <label className="mb-2 block text-sm font-medium">Status</label>
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as any)}
+                                    onChange={(e) => setStatus(e.target.value as 'pending' | 'active' | 'completed' | 'cancelled')}
                                     className="w-full rounded-md border border-sidebar-border bg-white px-3 py-2 dark:border-sidebar-border dark:bg-neutral-800"
                                 >
                                     <option value="pending">Pending</option>
@@ -163,7 +163,7 @@ export default function Create({ brands, creators, prefilled_brand_id, prefilled
                                 <label className="mb-2 block text-sm font-medium">Connection Type</label>
                                 <select
                                     value={connectionType}
-                                    onChange={(e) => setConnectionType(e.target.value as any)}
+                                    onChange={(e) => setConnectionType(e.target.value as 'connected' | 'unconnected')}
                                     className="w-full rounded-md border border-sidebar-border bg-white px-3 py-2 dark:border-sidebar-border dark:bg-neutral-800"
                                 >
                                     <option value="unconnected">Unconnected</option>
@@ -174,7 +174,7 @@ export default function Create({ brands, creators, prefilled_brand_id, prefilled
                                 <label className="mb-2 block text-sm font-medium">Collaboration Type</label>
                                 <select
                                     value={collaborationType}
-                                    onChange={(e) => setCollaborationType(e.target.value as any)}
+                                    onChange={(e) => setCollaborationType(e.target.value as 'paid' | 'free' | 'commission' | 'product_exchange')}
                                     className="w-full rounded-md border border-sidebar-border bg-white px-3 py-2 dark:border-sidebar-border dark:bg-neutral-800"
                                 >
                                     <option value="commission">Commission</option>

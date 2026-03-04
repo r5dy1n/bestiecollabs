@@ -93,7 +93,7 @@ export interface Creator {
     category_primary: string;
     category_secondary?: string | null;
     category_tertiary?: string | null;
-    followers_demographs?: any;
+    followers_demographs?: Record<string, unknown> | null;
     follower_age_min: number;
     follower_age_max: number;
     language: string;
@@ -117,7 +117,7 @@ export interface SocialSyncJob {
     creator_id: string;
     platform: string;
     status: 'pending' | 'processing' | 'completed' | 'failed';
-    sync_data?: any;
+    sync_data?: Record<string, unknown> | null;
     error_message?: string | null;
     started_at: string | null;
     completed_at: string | null;
