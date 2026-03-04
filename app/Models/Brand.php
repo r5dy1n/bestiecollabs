@@ -64,6 +64,21 @@ class Brand extends Model
         return $this->morphMany(OutreachAttempt::class, 'contactable');
     }
 
+    public function connections()
+    {
+        return $this->morphMany(Connection::class, 'connectable');
+    }
+
+    public function agreements(): HasMany
+    {
+        return $this->hasMany(CollaborationAgreement::class);
+    }
+
+    public function collaborations()
+    {
+        return $this->hasMany(Collaboration::class);
+    }
+
     public function getTotalOutreachAttemptsAttribute(): int
     {
         return $this->outreachAttempts()->count();
@@ -76,9 +91,11 @@ class Brand extends Model
             ->count() >= 7;
     }
 
-    public function collaborations()
+    public function isConnected(): bool
     {
-        return $this->hasMany(Collaboration::class);
+        return $this->connections()
+            ->where('status', 'verified')
+            ->exists();
     }
 
     public function activeCollaborations()
@@ -86,13 +103,13 @@ class Brand extends Model
         return $this->collaborations()->where('status', 'active');
     }
 
+    public function activeAgreements()
+    {
+        return $this->agreements()->where('status', 'active');
+    }
+
     public function getConnectionStatusAttribute(): string
     {
-        $activeCollaboration = $this->collaborations()
-            ->whereIn('status', ['active', 'completed'])
-            ->where('connection_type', 'connected')
-            ->exists();
-
-        return $activeCollaboration ? 'connected' : 'unconnected';
+        return $this->isConnected() ? 'connected' : 'unconnected';
     }
 }

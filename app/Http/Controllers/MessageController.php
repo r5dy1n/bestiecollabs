@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\Creator;
 use App\Models\Message;
+use App\Notifications\NewMessageNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -137,13 +138,18 @@ class MessageController extends Controller
             return redirect()->back()->with('error', 'This contact must have 7+ outreach attempts before direct messaging is enabled.');
         }
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => $user->id,
             'sender_type' => get_class($user),
             'recipient_id' => $recipient->id,
             'recipient_type' => $validated['recipient_type'],
             'message_content' => $validated['message_content'],
         ]);
+
+        // Send notification to recipient if they have a user account
+        if ($recipient->user) {
+            $recipient->user->notify(new NewMessageNotification($message));
+        }
 
         return redirect()->back()->with('success', 'Message sent successfully.');
     }

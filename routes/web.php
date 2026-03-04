@@ -97,6 +97,40 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/{collaboration}/revenue', [App\Http\Controllers\Admin\CollaborationController::class, 'addRevenue'])->name('add-revenue');
         Route::patch('/{collaboration}/deliverables', [App\Http\Controllers\Admin\CollaborationController::class, 'updateDeliverables'])->name('update-deliverables');
     });
+
+    // Connection Management
+    Route::prefix('connections')->name('connections.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ConnectionController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\ConnectionController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\ConnectionController::class, 'store'])->name('store');
+        Route::get('/{connection}', [App\Http\Controllers\Admin\ConnectionController::class, 'show'])->name('show');
+        Route::patch('/{connection}/status', [App\Http\Controllers\Admin\ConnectionController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{connection}', [App\Http\Controllers\Admin\ConnectionController::class, 'destroy'])->name('destroy');
+    });
+
+    // Collaboration Agreements
+    Route::prefix('agreements')->name('agreements.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'store'])->name('store');
+        Route::get('/{agreement}', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'show'])->name('show');
+        Route::get('/{agreement}/edit', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'edit'])->name('edit');
+        Route::patch('/{agreement}', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'update'])->name('update');
+        Route::post('/{agreement}/regenerate-script', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'regenerateScript'])->name('regenerate-script');
+        Route::delete('/{agreement}', [App\Http\Controllers\Admin\CollaborationAgreementController::class, 'destroy'])->name('destroy');
+    });
+
+    // Collaboration Payments
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'store'])->name('store');
+        Route::get('/{payment}', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'show'])->name('show');
+        Route::get('/{payment}/edit', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'edit'])->name('edit');
+        Route::patch('/{payment}', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'update'])->name('update');
+        Route::post('/{payment}/mark-paid', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'markAsPaid'])->name('mark-paid');
+        Route::delete('/{payment}', [App\Http\Controllers\Admin\CollaborationPaymentController::class, 'destroy'])->name('destroy');
+    });
 });
 
 require __DIR__.'/settings.php';
