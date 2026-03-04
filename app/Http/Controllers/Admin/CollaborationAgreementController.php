@@ -47,7 +47,7 @@ class CollaborationAgreementController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'brand_id' => 'required|uuid|exists:brands,id',
@@ -97,7 +97,7 @@ class CollaborationAgreementController extends Controller
         ]);
     }
 
-    public function update(Request $request, CollaborationAgreement $agreement)
+    public function update(Request $request, CollaborationAgreement $agreement): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -119,7 +119,7 @@ class CollaborationAgreementController extends Controller
             ->with('success', 'Agreement updated successfully.');
     }
 
-    public function regenerateScript(CollaborationAgreement $agreement)
+    public function regenerateScript(CollaborationAgreement $agreement): \Illuminate\Http\RedirectResponse
     {
         $script = $this->scriptGenerator->generate($agreement);
         $agreement->update(['ai_generated_script' => $script]);
@@ -129,7 +129,7 @@ class CollaborationAgreementController extends Controller
             ->with('success', 'AI script regenerated successfully.');
     }
 
-    public function destroy(CollaborationAgreement $agreement)
+    public function destroy(CollaborationAgreement $agreement): \Illuminate\Http\RedirectResponse
     {
         $agreement->delete();
 

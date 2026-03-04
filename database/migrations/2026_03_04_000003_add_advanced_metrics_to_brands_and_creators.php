@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('youtube_subscribers')->nullable()->after('tiktok_followers');
             $table->integer('twitter_followers')->nullable()->after('youtube_subscribers');
             $table->decimal('avg_engagement_rate', 5, 2)->nullable()->after('twitter_followers');
-            $table->decimal('avg_views_per_post', 10, 2')->nullable()->after('avg_engagement_rate');
+            $table->decimal('avg_views_per_post', 10, 2)->nullable()->after('avg_engagement_rate');
             $table->decimal('estimated_reach', 10, 2)->nullable()->after('avg_views_per_post');
             $table->json('content_previews')->nullable()->after('estimated_reach'); // Recent content samples
             $table->json('monthly_metrics')->nullable()->after('content_previews'); // Trending data

@@ -41,7 +41,7 @@ class CollaborationPaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'agreement_id' => 'required|uuid|exists:collaboration_agreements,id',
@@ -81,7 +81,7 @@ class CollaborationPaymentController extends Controller
         ]);
     }
 
-    public function update(Request $request, CollaborationPayment $payment)
+    public function update(Request $request, CollaborationPayment $payment): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
@@ -102,7 +102,7 @@ class CollaborationPaymentController extends Controller
             ->with('success', 'Payment updated successfully.');
     }
 
-    public function markAsPaid(Request $request, CollaborationPayment $payment)
+    public function markAsPaid(Request $request, CollaborationPayment $payment): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'transaction_id' => 'nullable|string|max:255',
@@ -115,7 +115,7 @@ class CollaborationPaymentController extends Controller
             ->with('success', 'Payment marked as paid.');
     }
 
-    public function destroy(CollaborationPayment $payment)
+    public function destroy(CollaborationPayment $payment): \Illuminate\Http\RedirectResponse
     {
         $payment->delete();
 

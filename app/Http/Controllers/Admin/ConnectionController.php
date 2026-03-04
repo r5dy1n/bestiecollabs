@@ -53,7 +53,7 @@ class ConnectionController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'connectable_type' => 'required|in:App\Models\Brand,App\Models\Creator',
@@ -83,7 +83,7 @@ class ConnectionController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, Connection $connection)
+    public function updateStatus(Request $request, Connection $connection): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,verified,rejected',
@@ -100,7 +100,7 @@ class ConnectionController extends Controller
             ->with('success', 'Connection status updated.');
     }
 
-    public function destroy(Connection $connection)
+    public function destroy(Connection $connection): \Illuminate\Http\RedirectResponse
     {
         $connection->delete();
 
