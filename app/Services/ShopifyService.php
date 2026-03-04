@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\ShopifyConnection;
+use App\Models\ShopifyCustomer;
+use App\Models\ShopifyOrder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 
@@ -573,5 +575,346 @@ class ShopifyService
         }
 
         return null;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getOrders(ShopifyConnection $connection, ?string $sinceId = null): array
+    {
+        $allOrders = [];
+        $params = ['limit' => 250, 'status' => 'any'];
+
+        if ($sinceId) {
+            $params['since_id'] = $sinceId;
+        }
+
+        $url = $this->apiUrl($connection->shop_domain, '/orders.json?'.http_build_query($params));
+
+        while ($url) {
+            $response = $this->authenticatedRequest($connection, $url);
+            $allOrders = array_merge($allOrders, $response->json('orders', []));
+            $url = $this->getNextPageUrl($response);
+        }
+
+        return $allOrders;
+    }
+
+    public function syncOrders(ShopifyConnection $connection): int
+    {
+        $lastOrder = $connection->orders()->orderByDesc('shopify_order_id')->first();
+        $sinceId = $lastOrder?->shopify_order_id;
+
+        $orders = $this->getOrders($connection, $sinceId);
+        $count = 0;
+
+        foreach ($orders as $order) {
+            $discountCodes = array_map(
+                fn ($code) => $code['code'] ?? '',
+                $order['discount_codes'] ?? []
+            );
+
+            $billingAddress = $order['billing_address'] ?? [];
+            $shippingAddress = $order['shipping_address'] ?? [];
+
+            ShopifyOrder::query()->updateOrCreate(
+                [
+                    'shopify_connection_id' => $connection->id,
+                    'shopify_order_id' => (string) $order['id'],
+                ],
+                [
+                    'order_number' => (string) ($order['order_number'] ?? $order['name'] ?? ''),
+                    'email' => $order['email'] ?? null,
+                    'total_price' => (float) ($order['total_price'] ?? 0),
+                    'subtotal_price' => (float) ($order['subtotal_price'] ?? 0),
+                    'total_discounts' => (float) ($order['total_discounts'] ?? 0),
+                    'currency' => $order['currency'] ?? 'USD',
+                    'financial_status' => $order['financial_status'] ?? 'pending',
+                    'fulfillment_status' => $order['fulfillment_status'] ?? null,
+                    'discount_codes' => $discountCodes,
+                    'line_items_count' => count($order['line_items'] ?? []),
+                    'customer_id' => isset($order['customer']['id']) ? (string) $order['customer']['id'] : null,
+                    'billing_city' => $billingAddress['city'] ?? null,
+                    'billing_province' => $billingAddress['province'] ?? null,
+                    'billing_country' => $billingAddress['country'] ?? null,
+                    'shipping_city' => $shippingAddress['city'] ?? null,
+                    'shipping_province' => $shippingAddress['province'] ?? null,
+                    'shipping_country' => $shippingAddress['country'] ?? null,
+                    'shopify_created_at' => Carbon::parse($order['created_at']),
+                ]
+            );
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCustomers(ShopifyConnection $connection, ?string $sinceId = null): array
+    {
+        $allCustomers = [];
+        $params = ['limit' => 250];
+
+        if ($sinceId) {
+            $params['since_id'] = $sinceId;
+        }
+
+        $url = $this->apiUrl($connection->shop_domain, '/customers.json?'.http_build_query($params));
+
+        while ($url) {
+            $response = $this->authenticatedRequest($connection, $url);
+            $allCustomers = array_merge($allCustomers, $response->json('customers', []));
+            $url = $this->getNextPageUrl($response);
+        }
+
+        return $allCustomers;
+    }
+
+    public function syncCustomers(ShopifyConnection $connection): int
+    {
+        $lastCustomer = $connection->customers()->orderByDesc('shopify_customer_id')->first();
+        $sinceId = $lastCustomer?->shopify_customer_id;
+
+        $customers = $this->getCustomers($connection, $sinceId);
+        $count = 0;
+
+        foreach ($customers as $customer) {
+            $defaultAddress = $customer['default_address'] ?? [];
+            $tags = ! empty($customer['tags']) ? explode(', ', $customer['tags']) : [];
+
+            ShopifyCustomer::query()->updateOrCreate(
+                [
+                    'shopify_connection_id' => $connection->id,
+                    'shopify_customer_id' => (string) $customer['id'],
+                ],
+                [
+                    'email' => $customer['email'] ?? null,
+                    'first_name' => $customer['first_name'] ?? null,
+                    'last_name' => $customer['last_name'] ?? null,
+                    'orders_count' => (int) ($customer['orders_count'] ?? 0),
+                    'total_spent' => (float) ($customer['total_spent'] ?? 0),
+                    'city' => $defaultAddress['city'] ?? null,
+                    'province' => $defaultAddress['province'] ?? null,
+                    'country' => $defaultAddress['country'] ?? null,
+                    'tags' => $tags,
+                    'accepts_marketing' => (bool) ($customer['accepts_marketing'] ?? false),
+                    'shopify_created_at' => Carbon::parse($customer['created_at']),
+                ]
+            );
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * @return array{id: int, admin_url: string}
+     *
+     * @throws \RuntimeException
+     */
+    public function createDraftOrder(ShopifyConnection $connection, array $data): array
+    {
+        $lineItems = array_map(fn ($item) => [
+            'title' => $item['title'],
+            'price' => (string) $item['price'],
+            'quantity' => (int) $item['quantity'],
+        ], $data['line_items']);
+
+        $payload = [
+            'draft_order' => [
+                'line_items' => $lineItems,
+            ],
+        ];
+
+        if (! empty($data['customer_email'])) {
+            $payload['draft_order']['email'] = $data['customer_email'];
+        }
+
+        if (! empty($data['note'])) {
+            $payload['draft_order']['note'] = $data['note'];
+        }
+
+        if (! empty($data['tags'])) {
+            $payload['draft_order']['tags'] = $data['tags'];
+        }
+
+        if (! empty($data['discount_code'])) {
+            $payload['draft_order']['applied_discount'] = [
+                'discount_type' => 'fixed_amount',
+                'value' => '0',
+                'title' => $data['discount_code'],
+            ];
+        }
+
+        $url = $this->apiUrl($connection->shop_domain, '/draft_orders.json');
+        $response = $this->authenticatedPostRequest($connection, $url, $payload);
+
+        $draftOrder = $response['draft_order'] ?? null;
+
+        if (! $draftOrder || ! isset($draftOrder['id'])) {
+            throw new \RuntimeException('Failed to create draft order: no ID returned.');
+        }
+
+        return [
+            'id' => $draftOrder['id'],
+            'admin_url' => "https://{$connection->shop_domain}/admin/draft_orders/{$draftOrder['id']}",
+        ];
+    }
+
+    /**
+     * @return array<int, array{id: int, title: string, variants: array<int, array{id: int, title: string, price: string}>}>
+     */
+    public function getProducts(ShopifyConnection $connection, int $limit = 50): array
+    {
+        $url = $this->apiUrl($connection->shop_domain, '/products.json?limit='.$limit.'&status=active');
+        $response = $this->authenticatedRequest($connection, $url);
+        $products = $response->json('products', []);
+
+        return array_map(fn ($product) => [
+            'id' => $product['id'],
+            'title' => $product['title'],
+            'variants' => array_map(fn ($variant) => [
+                'id' => $variant['id'],
+                'title' => $variant['title'],
+                'price' => $variant['price'],
+            ], $product['variants'] ?? []),
+        ], $products);
+    }
+
+    /**
+     * @return array{total_revenue: float, total_revenue_30d: float, order_count: int, order_count_30d: int, avg_order_value: float, top_discount_codes: array<int, array{code: string, count: int}>}
+     */
+    public function getSalesAnalytics(ShopifyConnection $connection): array
+    {
+        $orders = $connection->orders();
+
+        $totalRevenue = (float) $orders->sum('total_price');
+        $orderCount = $orders->count();
+
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        $recentOrders = $connection->orders()->where('shopify_created_at', '>=', $thirtyDaysAgo);
+
+        $totalRevenue30d = (float) $recentOrders->sum('total_price');
+        $orderCount30d = $recentOrders->count();
+
+        $avgOrderValue = $orderCount > 0 ? $totalRevenue / $orderCount : 0;
+
+        $discountCodeCounts = [];
+        $connection->orders()->whereNotNull('discount_codes')->each(function ($order) use (&$discountCodeCounts) {
+            foreach ($order->discount_codes as $code) {
+                if (! empty($code)) {
+                    $discountCodeCounts[$code] = ($discountCodeCounts[$code] ?? 0) + 1;
+                }
+            }
+        });
+
+        arsort($discountCodeCounts);
+        $topDiscountCodes = [];
+        $i = 0;
+        foreach ($discountCodeCounts as $code => $count) {
+            if ($i >= 5) {
+                break;
+            }
+            $topDiscountCodes[] = ['code' => $code, 'count' => $count];
+            $i++;
+        }
+
+        return [
+            'total_revenue' => $totalRevenue,
+            'total_revenue_30d' => $totalRevenue30d,
+            'order_count' => $orderCount,
+            'order_count_30d' => $orderCount30d,
+            'avg_order_value' => round($avgOrderValue, 2),
+            'top_discount_codes' => $topDiscountCodes,
+        ];
+    }
+
+    /**
+     * Get demographics for customers who used discount codes.
+     *
+     * @return array{orders_with_codes: int, unique_customers_with_codes: int, discount_code_stats: array<int, array{code: string, orders: int, revenue: float, unique_customers: int}>, locations_by_country: array<int, array{country: string, orders: int, revenue: float}>, locations_by_city: array<int, array{city: string, orders: int, revenue: float}>}
+     */
+    public function getCustomerDemographics(ShopifyConnection $connection): array
+    {
+        $ordersWithCodes = $connection->orders()
+            ->whereJsonLength('discount_codes', '>', 0)
+            ->get();
+
+        $totalOrdersWithCodes = $ordersWithCodes->count();
+        $uniqueCustomers = $ordersWithCodes->whereNotNull('customer_id')->pluck('customer_id')->unique()->count();
+
+        // Aggregate stats per discount code
+        $codeStats = [];
+        foreach ($ordersWithCodes as $order) {
+            foreach ($order->discount_codes as $code) {
+                if (empty($code)) {
+                    continue;
+                }
+                if (! isset($codeStats[$code])) {
+                    $codeStats[$code] = [
+                        'code' => $code,
+                        'orders' => 0,
+                        'revenue' => 0.0,
+                        'customers' => [],
+                    ];
+                }
+                $codeStats[$code]['orders']++;
+                $codeStats[$code]['revenue'] += (float) $order->total_price;
+                if ($order->customer_id) {
+                    $codeStats[$code]['customers'][$order->customer_id] = true;
+                }
+            }
+        }
+
+        $discountCodeStats = collect($codeStats)
+            ->map(fn ($stat) => [
+                'code' => $stat['code'],
+                'orders' => $stat['orders'],
+                'revenue' => round($stat['revenue'], 2),
+                'unique_customers' => count($stat['customers']),
+            ])
+            ->sortByDesc('orders')
+            ->values()
+            ->take(10)
+            ->toArray();
+
+        // Location breakdown for orders with discount codes
+        $locationsByCountry = $ordersWithCodes
+            ->whereNotNull('shipping_country')
+            ->groupBy('shipping_country')
+            ->map(fn ($orders, $country) => [
+                'country' => $country,
+                'orders' => $orders->count(),
+                'revenue' => round($orders->sum('total_price'), 2),
+            ])
+            ->sortByDesc('orders')
+            ->values()
+            ->take(10)
+            ->toArray();
+
+        $locationsByCity = $ordersWithCodes
+            ->whereNotNull('shipping_city')
+            ->groupBy('shipping_city')
+            ->map(fn ($orders, $city) => [
+                'city' => $city,
+                'orders' => $orders->count(),
+                'revenue' => round($orders->sum('total_price'), 2),
+            ])
+            ->sortByDesc('orders')
+            ->values()
+            ->take(10)
+            ->toArray();
+
+        return [
+            'orders_with_codes' => $totalOrdersWithCodes,
+            'unique_customers_with_codes' => $uniqueCustomers,
+            'discount_code_stats' => $discountCodeStats,
+            'locations_by_country' => $locationsByCountry,
+            'locations_by_city' => $locationsByCity,
+        ];
     }
 }

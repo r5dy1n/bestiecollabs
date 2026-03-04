@@ -7,10 +7,10 @@ import { Label } from '@/components/ui/label';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type Discount, type ShopifyConnection } from '@/types';
+import { type BreadcrumbItem, type Discount, type ShopifyAnalytics, type ShopifyConnection, type ShopifyDemographics, type ShopifyProduct } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios, { AxiosError } from 'axios';
-import { Package, Plus, Shuffle, Tag, Truck, X } from 'lucide-react';
+import { DollarSign, Globe, MapPin, Package, Plus, RefreshCw, ShoppingCart, Shuffle, Tag, Trash2, Truck, Users, X } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
 interface DashboardProps {
@@ -19,9 +19,16 @@ interface DashboardProps {
     discounts: Discount[];
     needsReauthorization: boolean;
     canCreateDiscounts: boolean;
+    canViewAnalytics: boolean;
+    canCreateOrders: boolean;
+    salesAnalytics: ShopifyAnalytics | null;
+    customerDemographics: ShopifyDemographics | null;
     flash?: {
         success?: string;
         error?: string;
+    };
+    errors?: {
+        shop_domain?: string;
     };
     [key: string]: unknown;
 }
@@ -41,6 +48,13 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
     { key: 'scheduled', label: 'Scheduled' },
     { key: 'expired', label: 'Expired' },
 ];
+
+function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(value);
+}
 
 function getDiscountTypeLabel(discountType: Discount['discount_type']): string {
     switch (discountType) {
@@ -107,7 +121,524 @@ function CombinationsIcons({ combinesWith }: { combinesWith: Discount['combines_
     );
 }
 
-function ShopifyConnectCard({ shopifyConnection, needsReauthorization, flash }: { shopifyConnection: ShopifyConnection | null; needsReauthorization: boolean; flash?: DashboardProps['flash'] }) {
+function SalesAnalyticsCard({ analytics, onSync }: { analytics: ShopifyAnalytics | null; onSync: () => void }) {
+    const [syncing, setSyncing] = useState(false);
+
+    async function handleSync() {
+        setSyncing(true);
+        try {
+            await axios.post('/shopify/sync-orders');
+            onSync();
+        } catch {
+            // Silent fail
+        } finally {
+            setSyncing(false);
+        }
+    }
+
+    if (!analytics) {
+        return (
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Sales Analytics</CardTitle>
+                            <CardDescription>Sync orders to see your sales data.</CardDescription>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing}>
+                            <RefreshCw className={`mr-1 size-4 ${syncing ? 'animate-spin' : ''}`} />
+                            {syncing ? 'Syncing...' : 'Sync Orders'}
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="rounded-lg border p-4">
+                                <div className="mb-2 h-4 w-20 animate-pulse rounded bg-muted" />
+                                <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Sales Analytics</CardTitle>
+                        <CardDescription>Overview of your store's performance.</CardDescription>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing}>
+                        <RefreshCw className={`mr-1 size-4 ${syncing ? 'animate-spin' : ''}`} />
+                        {syncing ? 'Syncing...' : 'Sync Orders'}
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <DollarSign className="size-4" />
+                            Total Revenue
+                        </div>
+                        <div className="text-2xl font-bold">{formatCurrency(analytics.total_revenue)}</div>
+                        <div className="text-muted-foreground mt-1 text-xs">
+                            {formatCurrency(analytics.total_revenue_30d)} last 30 days
+                        </div>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <ShoppingCart className="size-4" />
+                            Orders
+                        </div>
+                        <div className="text-2xl font-bold">{analytics.order_count.toLocaleString()}</div>
+                        <div className="text-muted-foreground mt-1 text-xs">
+                            {analytics.order_count_30d.toLocaleString()} last 30 days
+                        </div>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <Package className="size-4" />
+                            Avg Order Value
+                        </div>
+                        <div className="text-2xl font-bold">{formatCurrency(analytics.avg_order_value)}</div>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <Tag className="size-4" />
+                            Top Discount Codes
+                        </div>
+                        {analytics.top_discount_codes.length > 0 ? (
+                            <div className="space-y-1">
+                                {analytics.top_discount_codes.slice(0, 3).map((item) => (
+                                    <div key={item.code} className="flex items-center justify-between text-sm">
+                                        <span className="truncate font-mono text-xs">{item.code}</span>
+                                        <span className="text-muted-foreground ml-2">{item.count}x</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-muted-foreground text-sm">No discount codes used</div>
+                        )}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function CustomerDemographicsCard({ demographics, onSync }: { demographics: ShopifyDemographics | null; onSync: () => void }) {
+    const [syncing, setSyncing] = useState(false);
+
+    async function handleSync() {
+        setSyncing(true);
+        try {
+            await axios.post('/shopify/sync-orders');
+            onSync();
+        } catch {
+            // Silent fail
+        } finally {
+            setSyncing(false);
+        }
+    }
+
+    if (!demographics) {
+        return (
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Discount Code Performance</CardTitle>
+                            <CardDescription>Sync orders to see who's using your discount codes.</CardDescription>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing}>
+                            <RefreshCw className={`mr-1 size-4 ${syncing ? 'animate-spin' : ''}`} />
+                            {syncing ? 'Syncing...' : 'Sync Orders'}
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="rounded-lg border p-4">
+                                <div className="mb-2 h-4 w-20 animate-pulse rounded bg-muted" />
+                                <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Discount Code Performance</CardTitle>
+                        <CardDescription>Track which codes are being used and by whom.</CardDescription>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing}>
+                        <RefreshCw className={`mr-1 size-4 ${syncing ? 'animate-spin' : ''}`} />
+                        {syncing ? 'Syncing...' : 'Sync Orders'}
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <Tag className="size-4" />
+                            Orders with Codes
+                        </div>
+                        <div className="text-2xl font-bold">{demographics.orders_with_codes.toLocaleString()}</div>
+                        <div className="text-muted-foreground mt-1 text-xs">
+                            {demographics.unique_customers_with_codes.toLocaleString()} unique customers
+                        </div>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <Globe className="size-4" />
+                            Top Countries
+                        </div>
+                        {demographics.locations_by_country.length > 0 ? (
+                            <div className="space-y-1">
+                                {demographics.locations_by_country.slice(0, 3).map((item) => (
+                                    <div key={item.country} className="flex items-center justify-between text-sm">
+                                        <span className="truncate">{item.country}</span>
+                                        <span className="text-muted-foreground ml-2">{item.orders} orders</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-muted-foreground text-sm">No data yet</div>
+                        )}
+                    </div>
+                    <div className="rounded-lg border p-4 lg:col-span-2">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
+                            <Users className="size-4" />
+                            Code Performance
+                        </div>
+                        {demographics.discount_code_stats.length > 0 ? (
+                            <div className="space-y-1.5">
+                                {demographics.discount_code_stats.slice(0, 4).map((item) => (
+                                    <div key={item.code} className="flex items-center justify-between text-sm">
+                                        <span className="truncate font-mono text-xs">{item.code}</span>
+                                        <span className="text-muted-foreground ml-2 text-xs">
+                                            {item.orders} orders | {formatCurrency(item.revenue)} | {item.unique_customers} customers
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-muted-foreground text-sm">No discount codes used yet</div>
+                        )}
+                    </div>
+                </div>
+                {demographics.locations_by_city.length > 0 && (
+                    <div className="mt-4 rounded-lg border p-4">
+                        <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm">
+                            <MapPin className="size-4" />
+                            Top Cities Using Discount Codes
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-5">
+                            {demographics.locations_by_city.slice(0, 10).map((item) => (
+                                <div key={item.city} className="flex items-center justify-between text-sm">
+                                    <span className="truncate">{item.city}</span>
+                                    <span className="text-muted-foreground ml-2">{item.orders}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+interface LineItem {
+    title: string;
+    price: string;
+    quantity: number;
+}
+
+function CreateDraftOrderCard() {
+    const [showForm, setShowForm] = useState(false);
+    const [products, setProducts] = useState<ShopifyProduct[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [lineItems, setLineItems] = useState<LineItem[]>([{ title: '', price: '', quantity: 1 }]);
+    const [customerEmail, setCustomerEmail] = useState('');
+    const [note, setNote] = useState('');
+    const [discountCode, setDiscountCode] = useState('');
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    async function loadProducts() {
+        setLoadingProducts(true);
+        try {
+            const response = await axios.get('/shopify/products');
+            setProducts(response.data.products || []);
+        } catch {
+            // Silent fail
+        } finally {
+            setLoadingProducts(false);
+        }
+    }
+
+    function handleShowForm() {
+        setShowForm(true);
+        if (products.length === 0) {
+            loadProducts();
+        }
+    }
+
+    function addLineItem() {
+        setLineItems([...lineItems, { title: '', price: '', quantity: 1 }]);
+    }
+
+    function removeLineItem(index: number) {
+        if (lineItems.length > 1) {
+            setLineItems(lineItems.filter((_, i) => i !== index));
+        }
+    }
+
+    function updateLineItem(index: number, field: keyof LineItem, value: string | number) {
+        const updated = [...lineItems];
+        updated[index] = { ...updated[index], [field]: value };
+        setLineItems(updated);
+    }
+
+    function selectProduct(index: number, productId: string, variantId: string) {
+        const product = products.find((p) => p.id === parseInt(productId));
+        const variant = product?.variants.find((v) => v.id === parseInt(variantId));
+        if (product && variant) {
+            const title = variant.title === 'Default Title' ? product.title : `${product.title} - ${variant.title}`;
+            updateLineItem(index, 'title', title);
+            updateLineItem(index, 'price', variant.price);
+        }
+    }
+
+    async function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        setProcessing(true);
+        setError(null);
+        setSuccess(null);
+
+        const validLineItems = lineItems.filter((item) => item.title && item.price);
+        if (validLineItems.length === 0) {
+            setError('At least one line item is required.');
+            setProcessing(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post('/shopify/draft-orders', {
+                line_items: validLineItems.map((item) => ({
+                    title: item.title,
+                    price: parseFloat(item.price),
+                    quantity: item.quantity,
+                })),
+                customer_email: customerEmail || undefined,
+                note: note || undefined,
+                discount_code: discountCode || undefined,
+            });
+
+            setSuccess('Draft order created successfully!');
+            setLineItems([{ title: '', price: '', quantity: 1 }]);
+            setCustomerEmail('');
+            setNote('');
+            setDiscountCode('');
+
+            if (response.data.data?.admin_url) {
+                window.open(response.data.data.admin_url, '_blank');
+            }
+        } catch (err) {
+            if (err instanceof AxiosError) {
+                setError(err.response?.data?.message || 'Failed to create draft order.');
+            }
+        } finally {
+            setProcessing(false);
+        }
+    }
+
+    if (!showForm) {
+        return (
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Create Draft Order</CardTitle>
+                            <CardDescription>Create sample orders for creators or testing.</CardDescription>
+                        </div>
+                        <Button size="sm" onClick={handleShowForm}>
+                            <Plus className="mr-1 size-4" />
+                            Create Order
+                        </Button>
+                    </div>
+                </CardHeader>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Create Draft Order</CardTitle>
+                        <CardDescription>Add products and customer details.</CardDescription>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setShowForm(false)}>
+                        <X className="mr-1 size-4" />
+                        Cancel
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                {error && (
+                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                        {error}
+                    </div>
+                )}
+                {success && (
+                    <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+                        {success}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label>Line Items</Label>
+                        <div className="mt-2 space-y-2">
+                            {lineItems.map((item, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                    <div className="flex-1 space-y-2">
+                                        {products.length > 0 && (
+                                            <Select
+                                                onValueChange={(value) => {
+                                                    const [productId, variantId] = value.split(':');
+                                                    selectProduct(index, productId, variantId);
+                                                }}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a product (optional)" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {products.map((product) =>
+                                                        product.variants.map((variant) => (
+                                                            <SelectItem
+                                                                key={`${product.id}:${variant.id}`}
+                                                                value={`${product.id}:${variant.id}`}
+                                                            >
+                                                                {variant.title === 'Default Title'
+                                                                    ? product.title
+                                                                    : `${product.title} - ${variant.title}`}{' '}
+                                                                (${variant.price})
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="Item title"
+                                                value={item.title}
+                                                onChange={(e) => updateLineItem(index, 'title', e.target.value)}
+                                                className="flex-1"
+                                            />
+                                            <Input
+                                                type="number"
+                                                placeholder="Price"
+                                                value={item.price}
+                                                onChange={(e) => updateLineItem(index, 'price', e.target.value)}
+                                                min="0"
+                                                step="0.01"
+                                                className="w-24"
+                                            />
+                                            <Input
+                                                type="number"
+                                                placeholder="Qty"
+                                                value={item.quantity}
+                                                onChange={(e) => updateLineItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                min="1"
+                                                className="w-20"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeLineItem(index)}
+                                        disabled={lineItems.length === 1}
+                                        className="mt-2"
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={addLineItem} className="mt-2">
+                            <Plus className="mr-1 size-4" />
+                            Add Item
+                        </Button>
+                        {loadingProducts && (
+                            <p className="text-muted-foreground mt-2 text-xs">Loading products...</p>
+                        )}
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <Label htmlFor="customer-email">Customer Email (optional)</Label>
+                            <Input
+                                id="customer-email"
+                                type="email"
+                                value={customerEmail}
+                                onChange={(e) => setCustomerEmail(e.target.value)}
+                                placeholder="customer@example.com"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="discount-code">Discount Code (optional)</Label>
+                            <Input
+                                id="discount-code"
+                                value={discountCode}
+                                onChange={(e) => setDiscountCode(e.target.value)}
+                                placeholder="e.g. SAMPLE20"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="note">Note (optional)</Label>
+                        <Input
+                            id="note"
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="e.g. Sample order for creator collab"
+                        />
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button type="submit" disabled={processing}>
+                            {processing ? 'Creating...' : 'Create Draft Order'}
+                        </Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    );
+}
+
+function ShopifyConnectCard({ shopifyConnection, needsReauthorization, flash, errors }: { shopifyConnection: ShopifyConnection | null; needsReauthorization: boolean; flash?: DashboardProps['flash']; errors?: { shop_domain?: string } }) {
     const [shopDomain, setShopDomain] = useState('');
     const [connecting, setConnecting] = useState(false);
 
@@ -129,7 +660,7 @@ function ShopifyConnectCard({ shopifyConnection, needsReauthorization, flash }: 
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle>Shopify Connection</CardTitle>
-                        <CardDescription>Connect your Shopify store to manage discounts.</CardDescription>
+                        <CardDescription>Connect your Shopify store to manage discounts and orders.</CardDescription>
                     </div>
                     {shopifyConnection && <Badge variant="default">Connected</Badge>}
                 </div>
@@ -148,7 +679,7 @@ function ShopifyConnectCard({ shopifyConnection, needsReauthorization, flash }: 
 
                 {needsReauthorization && shopifyConnection && (
                     <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                        Your Shopify connection needs to be updated to show all discount types. Disconnect and reconnect your store to enable full discount access.
+                        Your Shopify connection needs to be updated for new features. Disconnect and reconnect your store to enable sales analytics and order creation.
                     </div>
                 )}
 
@@ -163,21 +694,29 @@ function ShopifyConnectCard({ shopifyConnection, needsReauthorization, flash }: 
                         </Button>
                     </div>
                 ) : (
-                    <form onSubmit={handleConnect} className="flex items-end gap-3">
-                        <div className="flex-1">
-                            <Label htmlFor="shop_domain">Shop Domain</Label>
-                            <Input
-                                id="shop_domain"
-                                type="text"
-                                placeholder="my-store.myshopify.com"
-                                value={shopDomain}
-                                onChange={(e) => setShopDomain(e.target.value)}
-                                required
-                            />
+                    <form onSubmit={handleConnect} className="space-y-3">
+                        {errors?.shop_domain && (
+                            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                                {errors.shop_domain} Please use the format: <code className="font-mono">your-store.myshopify.com</code>
+                            </div>
+                        )}
+                        <div className="flex items-end gap-3">
+                            <div className="flex-1">
+                                <Label htmlFor="shop_domain">Shop Domain</Label>
+                                <Input
+                                    id="shop_domain"
+                                    type="text"
+                                    placeholder="my-store.myshopify.com"
+                                    value={shopDomain}
+                                    onChange={(e) => setShopDomain(e.target.value)}
+                                    required
+                                    className={errors?.shop_domain ? 'border-red-500' : ''}
+                                />
+                            </div>
+                            <Button type="submit" disabled={connecting}>
+                                {connecting ? 'Connecting...' : 'Connect Shopify'}
+                            </Button>
                         </div>
-                        <Button type="submit" disabled={connecting}>
-                            {connecting ? 'Connecting...' : 'Connect Shopify'}
-                        </Button>
                     </form>
                 )}
             </CardContent>
@@ -541,7 +1080,11 @@ function DefaultDashboard() {
 }
 
 export default function Dashboard() {
-    const { isBrand, shopifyConnection, discounts, needsReauthorization, canCreateDiscounts, flash } = usePage<DashboardProps>().props;
+    const { isBrand, shopifyConnection, discounts, needsReauthorization, canCreateDiscounts, canViewAnalytics, canCreateOrders, salesAnalytics, customerDemographics, flash, errors } = usePage<DashboardProps>().props;
+
+    function handleRefresh() {
+        router.reload();
+    }
 
     if (!isBrand) {
         return (
@@ -556,7 +1099,16 @@ export default function Dashboard() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex flex-col gap-6 p-4">
-                <ShopifyConnectCard shopifyConnection={shopifyConnection} needsReauthorization={needsReauthorization} flash={flash} />
+                <ShopifyConnectCard shopifyConnection={shopifyConnection} needsReauthorization={needsReauthorization} flash={flash} errors={errors} />
+                {shopifyConnection && canViewAnalytics && (
+                    <>
+                        <SalesAnalyticsCard analytics={salesAnalytics} onSync={handleRefresh} />
+                        <CustomerDemographicsCard demographics={customerDemographics} onSync={handleRefresh} />
+                    </>
+                )}
+                {shopifyConnection && canCreateOrders && (
+                    <CreateDraftOrderCard />
+                )}
                 {shopifyConnection && <DiscountsTable discounts={discounts} canCreateDiscounts={canCreateDiscounts} />}
             </div>
         </AppLayout>

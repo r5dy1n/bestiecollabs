@@ -17,6 +17,10 @@ class DashboardController extends Controller
         $shopifyConnection = null;
         $discounts = [];
         $needsReauthorization = false;
+        $salesAnalytics = null;
+        $customerDemographics = null;
+        $canViewAnalytics = false;
+        $canCreateOrders = false;
 
         if ($user->isBrand()) {
             $connection = $user->shopifyConnection;
@@ -29,11 +33,22 @@ class DashboardController extends Controller
                 ];
 
                 $needsReauthorization = $connection->needsReauthorization();
+                $canViewAnalytics = $connection->hasScope('read_orders') && $connection->hasScope('read_customers');
+                $canCreateOrders = $connection->hasScope('write_orders');
 
                 try {
                     $discounts = $this->shopifyService->getDiscountsForConnection($connection);
                 } catch (\Exception $e) {
                     $discounts = [];
+                }
+
+                if ($canViewAnalytics) {
+                    try {
+                        $salesAnalytics = $this->shopifyService->getSalesAnalytics($connection);
+                        $customerDemographics = $this->shopifyService->getCustomerDemographics($connection);
+                    } catch (\Exception $e) {
+                        // Silent fail - analytics will be null
+                    }
                 }
             }
         }
@@ -44,6 +59,10 @@ class DashboardController extends Controller
             'discounts' => $discounts,
             'needsReauthorization' => $needsReauthorization,
             'canCreateDiscounts' => $connection?->hasScope('write_price_rules') ?? false,
+            'canViewAnalytics' => $canViewAnalytics,
+            'canCreateOrders' => $canCreateOrders,
+            'salesAnalytics' => $salesAnalytics,
+            'customerDemographics' => $customerDemographics,
         ]);
     }
 }

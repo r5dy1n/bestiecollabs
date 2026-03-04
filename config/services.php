@@ -62,7 +62,7 @@ return [
     'shopify' => [
         'api_key' => env('SHOPIFY_API_KEY'),
         'api_secret' => env('SHOPIFY_API_SECRET'),
-        'scopes' => 'read_price_rules,write_price_rules,read_discounts,write_discounts',
+        'scopes' => 'read_price_rules,write_price_rules,read_discounts,write_discounts,read_orders,write_orders,read_customers,read_products',
         'redirect_uri' => env('SHOPIFY_REDIRECT_URI', '/shopify/callback'),
     ],
 

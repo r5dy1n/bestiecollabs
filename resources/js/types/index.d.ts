@@ -206,3 +206,78 @@ export interface SocialSearchResult {
     channel_id?: string;
     channel_name?: string;
 }
+
+export interface ShopifyOrder {
+    id: number;
+    shopify_order_id: string;
+    order_number: string;
+    email: string | null;
+    total_price: string;
+    subtotal_price: string;
+    total_discounts: string;
+    currency: string;
+    financial_status: string;
+    fulfillment_status: string | null;
+    discount_codes: string[];
+    line_items_count: number;
+    customer_id: string | null;
+    billing_city: string | null;
+    billing_province: string | null;
+    billing_country: string | null;
+    shipping_city: string | null;
+    shipping_province: string | null;
+    shipping_country: string | null;
+    shopify_created_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ShopifyCustomer {
+    id: number;
+    shopify_customer_id: string;
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    orders_count: number;
+    total_spent: string;
+    city: string | null;
+    province: string | null;
+    country: string | null;
+    tags: string[] | null;
+    accepts_marketing: boolean;
+    shopify_created_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ShopifyAnalytics {
+    total_revenue: number;
+    total_revenue_30d: number;
+    order_count: number;
+    order_count_30d: number;
+    avg_order_value: number;
+    top_discount_codes: Array<{ code: string; count: number }>;
+}
+
+export interface ShopifyDemographics {
+    orders_with_codes: number;
+    unique_customers_with_codes: number;
+    discount_code_stats: Array<{
+        code: string;
+        orders: number;
+        revenue: number;
+        unique_customers: number;
+    }>;
+    locations_by_country: Array<{ country: string; orders: number; revenue: number }>;
+    locations_by_city: Array<{ city: string; orders: number; revenue: number }>;
+}
+
+export interface ShopifyProduct {
+    id: number;
+    title: string;
+    variants: Array<{
+        id: number;
+        title: string;
+        price: string;
+    }>;
+}

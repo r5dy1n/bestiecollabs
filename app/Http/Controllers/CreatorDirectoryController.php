@@ -63,6 +63,8 @@ class CreatorDirectoryController extends Controller
 
     public function show(Creator $creator): Response
     {
+        $creator->load('user.socialConnections');
+
         $topMatches = $creator->matches()
             ->with('brand')
             ->orderBy('match_score', 'desc')
@@ -75,9 +77,23 @@ class CreatorDirectoryController extends Controller
                 ];
             });
 
+        $socialConnections = $creator->user?->socialConnections
+            ->filter(fn ($connection) => $connection->isConnected())
+            ->mapWithKeys(fn ($connection) => [
+                $connection->platform => [
+                    'platform' => $connection->platform,
+                    'handle' => $connection->handle,
+                    'followers' => $connection->followers,
+                    'posts_count' => $connection->posts_count,
+                    'engagement_rate' => $connection->engagement_rate,
+                    'last_sync_at' => $connection->last_sync_at?->toISOString(),
+                ],
+            ]) ?? collect();
+
         return Inertia::render('CreatorDirectory/Show', [
             'creator' => $creator,
             'topMatches' => $topMatches,
+            'socialConnections' => $socialConnections,
         ]);
     }
 }

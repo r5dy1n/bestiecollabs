@@ -37,6 +37,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('shopify/callback', [App\Http\Controllers\ShopifyController::class, 'callback'])->name('shopify.callback');
     Route::delete('shopify/disconnect', [App\Http\Controllers\ShopifyController::class, 'disconnect'])->name('shopify.disconnect');
     Route::post('shopify/discounts', [App\Http\Controllers\ShopifyController::class, 'storeDiscount'])->name('shopify.discounts.store');
+    Route::post('shopify/sync-orders', [App\Http\Controllers\ShopifyController::class, 'syncOrders'])->name('shopify.sync-orders');
+    Route::post('shopify/sync-customers', [App\Http\Controllers\ShopifyController::class, 'syncCustomers'])->name('shopify.sync-customers');
+    Route::get('shopify/analytics', [App\Http\Controllers\ShopifyController::class, 'getAnalytics'])->name('shopify.analytics');
+    Route::get('shopify/demographics', [App\Http\Controllers\ShopifyController::class, 'getCustomerDemographics'])->name('shopify.demographics');
+    Route::post('shopify/draft-orders', [App\Http\Controllers\ShopifyController::class, 'storeDraftOrder'])->name('shopify.draft-orders.store');
+    Route::get('shopify/products', [App\Http\Controllers\ShopifyController::class, 'getProducts'])->name('shopify.products');
 
     Route::get('find-creators', [App\Http\Controllers\FindCreatorController::class, 'index'])->name('find-creators');
     Route::post('find-creators/search', [App\Http\Controllers\FindCreatorController::class, 'search'])->name('find-creators.search');
