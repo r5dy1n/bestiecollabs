@@ -3,45 +3,12 @@
 namespace App\Services;
 
 use App\Models\Creator;
+use App\Models\SocialConnection;
 use App\Services\SocialMedia\SocialMediaFactory;
 
 class SocialMediaService
 {
     protected array $supportedPlatforms = ['instagram', 'tiktok', 'youtube', 'twitter'];
-
-    public function syncCreator(Creator $creator, ?array $platforms = null): array
-    {
-        $platforms = $platforms ?? $this->getCreatorPlatforms($creator);
-        $results = [];
-
-        foreach ($platforms as $platform) {
-            if (! in_array($platform, $this->supportedPlatforms)) {
-                $results[$platform] = [
-                    'success' => false,
-                    'error' => "Unsupported platform: {$platform}",
-                ];
-
-                continue;
-            }
-
-            try {
-                $result = $this->syncPlatform($creator, $platform);
-                $results[$platform] = [
-                    'success' => true,
-                    'data' => $result,
-                ];
-            } catch (\Exception $e) {
-                $results[$platform] = [
-                    'success' => false,
-                    'error' => $e->getMessage(),
-                ];
-            }
-        }
-
-        $creator->update(['last_synced_at' => now()]);
-
-        return $results;
-    }
 
     public function syncPlatform(Creator $creator, string $platform): array
     {
@@ -62,6 +29,7 @@ class SocialMediaService
         ]);
 
         $this->updateCreatorMetadata($creator, $platform, $platformData);
+        $this->updateSocialConnection($creator, $platform, $platformData);
 
         return $platformData;
     }
@@ -95,29 +63,6 @@ class SocialMediaService
         return $creator;
     }
 
-    protected function getCreatorPlatforms(Creator $creator): array
-    {
-        $platforms = [];
-
-        if ($creator->instagram_url) {
-            $platforms[] = 'instagram';
-        }
-
-        if ($creator->tiktok_url) {
-            $platforms[] = 'tiktok';
-        }
-
-        if ($creator->youtube_url) {
-            $platforms[] = 'youtube';
-        }
-
-        if ($creator->twitter_url) {
-            $platforms[] = 'twitter';
-        }
-
-        return $platforms;
-    }
-
     protected function getPlatformUrl(Creator $creator, string $platform): ?string
     {
         return match ($platform) {
@@ -135,6 +80,32 @@ class SocialMediaService
         $path = $parts['path'] ?? '';
 
         return trim($path, '/') ?: 'unknown';
+    }
+
+    protected function updateSocialConnection(Creator $creator, string $platform, array $data): void
+    {
+        $user = $creator->user;
+
+        if (! $user) {
+            return;
+        }
+
+        $connection = SocialConnection::where('user_id', $user->id)
+            ->where('platform', $platform)
+            ->where('status', 'connected')
+            ->first();
+
+        if (! $connection) {
+            return;
+        }
+
+        $connection->update([
+            'followers' => $data['follower_count'] ?? $data['subscriber_count'] ?? null,
+            'posts_count' => $data['media_count'] ?? $data['video_count'] ?? $data['tweet_count'] ?? null,
+            'engagement_rate' => $data['engagement_metrics']['engagement_rate'] ?? null,
+            'platform_metadata' => $data,
+            'last_sync_at' => now(),
+        ]);
     }
 
     protected function updateCreatorMetadata(Creator $creator, string $platform, array $data): void

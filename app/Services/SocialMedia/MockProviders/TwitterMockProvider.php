@@ -56,9 +56,4 @@ class TwitterMockProvider implements SocialMediaPlatformInterface
 
         return $results;
     }
-
-    public function validateConnection(string $url): bool
-    {
-        return str_contains($url, 'twitter.com') || str_contains($url, 'x.com');
-    }
 }

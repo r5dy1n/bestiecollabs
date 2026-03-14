@@ -8,42 +8,23 @@ use Illuminate\Support\Facades\Log;
 
 class InstagramProvider implements SocialMediaPlatformInterface
 {
-    protected string $baseUrl = 'https://graph.instagram.com/v18.0';
-
-    protected string $apiKey;
-
-    protected string $apiSecret;
+    protected string $baseUrl = 'https://graph.facebook.com/v19.0';
 
     protected string $accessToken;
 
     public function __construct()
     {
-        $this->apiKey = config('services.social_media.instagram.api_key');
-        $this->apiSecret = config('services.social_media.instagram.api_secret');
         $this->accessToken = config('services.social_media.instagram.access_token');
     }
 
     public function fetchProfile(string $username): array
     {
         try {
-            // Instagram Graph API requires user ID, not username
-            // First search for the user, then get their profile
-            $userId = $this->getUserIdFromUsername($username);
+            $data = $this->fetchBusinessDiscovery($username);
 
-            if (! $userId) {
+            if (! $data) {
                 throw new \Exception("User not found: {$username}");
             }
-
-            $response = Http::get("{$this->baseUrl}/{$userId}", [
-                'fields' => 'id,username,name,biography,followers_count,follows_count,media_count,profile_picture_url',
-                'access_token' => $this->accessToken,
-            ]);
-
-            if ($response->failed()) {
-                throw new \Exception('Failed to fetch Instagram profile: '.$response->body());
-            }
-
-            $data = $response->json();
 
             return [
                 'user_id' => $data['id'],
@@ -54,7 +35,7 @@ class InstagramProvider implements SocialMediaPlatformInterface
                 'following_count' => $data['follows_count'] ?? 0,
                 'media_count' => $data['media_count'] ?? 0,
                 'profile_picture_url' => $data['profile_picture_url'] ?? null,
-                'verified' => false, // Instagram Graph API doesn't provide verified status in basic fields
+                'verified' => false,
             ];
         } catch (\Exception $e) {
             Log::error('Instagram API error in fetchProfile', [
@@ -153,31 +134,13 @@ class InstagramProvider implements SocialMediaPlatformInterface
         }
     }
 
-    public function validateConnection(string $url): bool
-    {
-        // Parse Instagram URL to get username
-        if (! preg_match('/instagram\.com\/([a-zA-Z0-9._]+)/', $url, $matches)) {
-            return false;
-        }
-
-        $username = $matches[1];
-
-        try {
-            $profile = $this->fetchProfile($username);
-
-            return ! empty($profile['user_id']);
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
     protected function getUserIdFromUsername(string $username): ?string
     {
-        // Instagram Graph API requires user IDs, not usernames
-        // This is a significant limitation - you'd need to maintain a mapping
-        // or use Instagram Basic Display API for username lookup
-        // For now, we'll use Business Discovery if available
+        return $this->fetchBusinessDiscovery($username)['id'] ?? null;
+    }
 
+    protected function fetchBusinessDiscovery(string $username): ?array
+    {
         try {
             $businessAccountId = config('services.social_media.instagram.business_account_id');
 
@@ -186,19 +149,17 @@ class InstagramProvider implements SocialMediaPlatformInterface
             }
 
             $response = Http::get("{$this->baseUrl}/{$businessAccountId}", [
-                'fields' => "business_discovery.username({$username}){id,username}",
+                'fields' => "business_discovery.fields(id,username,name,followers_count,follows_count,media_count,biography,profile_picture_url)?username={$username}",
                 'access_token' => $this->accessToken,
             ]);
 
             if ($response->successful()) {
-                $data = $response->json();
-
-                return $data['business_discovery']['id'] ?? null;
+                return $response->json()['business_discovery'] ?? null;
             }
 
             return null;
         } catch (\Exception $e) {
-            Log::error('Failed to get Instagram user ID from username', [
+            Log::error('Failed to get Instagram user via business discovery', [
                 'username' => $username,
                 'error' => $e->getMessage(),
             ]);

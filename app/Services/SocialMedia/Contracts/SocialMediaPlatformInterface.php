@@ -9,6 +9,4 @@ interface SocialMediaPlatformInterface
     public function fetchMetrics(string $username): array;
 
     public function search(string $query, ?string $category = null): array;
-
-    public function validateConnection(string $url): bool;
 }

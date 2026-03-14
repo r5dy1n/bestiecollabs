@@ -57,9 +57,4 @@ class YouTubeMockProvider implements SocialMediaPlatformInterface
 
         return $results;
     }
-
-    public function validateConnection(string $url): bool
-    {
-        return str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be');
-    }
 }

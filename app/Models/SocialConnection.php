@@ -21,7 +21,6 @@ class SocialConnection extends Model
         'access_token',
         'refresh_token',
         'token_expires_at',
-        'metrics_source',
         'followers',
         'posts_count',
         'engagement_rate',
@@ -58,14 +57,5 @@ class SocialConnection extends Model
     public function isConnected(): bool
     {
         return $this->status === 'connected';
-    }
-
-    public function isTokenExpired(): bool
-    {
-        if (! $this->token_expires_at) {
-            return false;
-        }
-
-        return $this->token_expires_at->isPast();
     }
 }

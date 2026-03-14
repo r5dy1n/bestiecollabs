@@ -10,16 +10,6 @@ class TikTokProvider implements SocialMediaPlatformInterface
 {
     protected string $baseUrl = 'https://open.tiktokapis.com/v2';
 
-    protected string $apiKey;
-
-    protected string $apiSecret;
-
-    public function __construct()
-    {
-        $this->apiKey = config('services.social_media.tiktok.api_key');
-        $this->apiSecret = config('services.social_media.tiktok.api_secret');
-    }
-
     public function fetchProfile(string $username): array
     {
         try {
@@ -198,24 +188,6 @@ class TikTokProvider implements SocialMediaPlatformInterface
             ]);
 
             return [];
-        }
-    }
-
-    public function validateConnection(string $url): bool
-    {
-        // Parse TikTok URL to get username
-        if (! preg_match('/tiktok\.com\/@([a-zA-Z0-9._]+)/', $url, $matches)) {
-            return false;
-        }
-
-        $username = $matches[1];
-
-        try {
-            $profile = $this->fetchProfile($username);
-
-            return ! empty($profile['user_id']);
-        } catch (\Exception $e) {
-            return false;
         }
     }
 

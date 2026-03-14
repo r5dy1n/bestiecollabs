@@ -241,33 +241,6 @@ class YouTubeProvider implements SocialMediaPlatformInterface
         }
     }
 
-    public function validateConnection(string $url): bool
-    {
-        // Parse YouTube URL to get channel identifier
-        $patterns = [
-            '/youtube\.com\/channel\/([a-zA-Z0-9_-]+)/',
-            '/youtube\.com\/c\/([a-zA-Z0-9_-]+)/',
-            '/youtube\.com\/@([a-zA-Z0-9_-]+)/',
-            '/youtube\.com\/user\/([a-zA-Z0-9_-]+)/',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $url, $matches)) {
-                $identifier = $matches[1];
-
-                try {
-                    $profile = $this->fetchProfile($identifier);
-
-                    return ! empty($profile['channel_id']);
-                } catch (\Exception $e) {
-                    continue;
-                }
-            }
-        }
-
-        return false;
-    }
-
     protected function getBasicMetrics(array $profile): array
     {
         return [

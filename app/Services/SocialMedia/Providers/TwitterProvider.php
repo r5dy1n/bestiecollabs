@@ -10,16 +10,10 @@ class TwitterProvider implements SocialMediaPlatformInterface
 {
     protected string $baseUrl = 'https://api.twitter.com/2';
 
-    protected string $apiKey;
-
-    protected string $apiSecret;
-
     protected string $bearerToken;
 
     public function __construct()
     {
-        $this->apiKey = config('services.social_media.twitter.api_key');
-        $this->apiSecret = config('services.social_media.twitter.api_secret');
         $this->bearerToken = config('services.social_media.twitter.bearer_token');
     }
 
@@ -189,31 +183,6 @@ class TwitterProvider implements SocialMediaPlatformInterface
 
             return [];
         }
-    }
-
-    public function validateConnection(string $url): bool
-    {
-        // Parse Twitter URL to get username
-        $patterns = [
-            '/twitter\.com\/([a-zA-Z0-9_]+)/',
-            '/x\.com\/([a-zA-Z0-9_]+)/',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $url, $matches)) {
-                $username = $matches[1];
-
-                try {
-                    $profile = $this->fetchProfile($username);
-
-                    return ! empty($profile['user_id']);
-                } catch (\Exception $e) {
-                    continue;
-                }
-            }
-        }
-
-        return false;
     }
 
     protected function getBasicMetrics(array $profile): array

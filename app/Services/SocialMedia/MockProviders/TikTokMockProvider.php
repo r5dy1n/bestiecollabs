@@ -52,9 +52,4 @@ class TikTokMockProvider implements SocialMediaPlatformInterface
 
         return $results;
     }
-
-    public function validateConnection(string $url): bool
-    {
-        return str_contains($url, 'tiktok.com');
-    }
 }

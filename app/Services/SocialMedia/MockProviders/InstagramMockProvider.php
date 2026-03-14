@@ -100,9 +100,4 @@ class InstagramMockProvider implements SocialMediaPlatformInterface
 
         return fake()->sentence().' | Content about '.$query;
     }
-
-    public function validateConnection(string $url): bool
-    {
-        return str_contains($url, 'instagram.com');
-    }
 }
