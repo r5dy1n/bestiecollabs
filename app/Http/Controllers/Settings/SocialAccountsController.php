@@ -33,7 +33,7 @@ class SocialAccountsController extends Controller
      */
     private const PLATFORM_SCOPES = [
         'instagram' => ['instagram_business_basic'],
-        'tiktok' => ['user.basic.info', 'user.info.profile', 'user.info.stats'],
+        'tiktok' => ['user.basic.info'],
         'youtube' => ['https://www.googleapis.com/auth/youtube.readonly'],
         'twitter' => ['tweet.read', 'users.read'],
     ];
