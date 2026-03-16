@@ -45,7 +45,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('shopify/products', [App\Http\Controllers\ShopifyController::class, 'getProducts'])->name('shopify.products');
 
     Route::get('find-creators', [App\Http\Controllers\FindCreatorController::class, 'index'])->name('find-creators');
-    Route::post('find-creators/search', [App\Http\Controllers\FindCreatorController::class, 'search'])->name('find-creators.search');
     Route::get('find-creators/{username}', [App\Http\Controllers\FindCreatorController::class, 'show'])
         ->name('find-creators.show');
 

@@ -86,6 +86,18 @@ class SocialAccountsController extends Controller
 
         $user = Auth::user();
 
+        $alreadyClaimed = SocialConnection::where('platform', $platform)
+            ->where('platform_user_id', $socialUser->getId())
+            ->where('user_id', '!=', $user->id)
+            ->where('status', 'connected')
+            ->exists();
+
+        if ($alreadyClaimed) {
+            return redirect()
+                ->route('social-accounts.edit')
+                ->with('error', 'This '.ucfirst($platform).' account is already connected to another user.');
+        }
+
         $stats = $this->fetchStatsFromToken($platform, $socialUser->token);
 
         $connection = SocialConnection::updateOrCreate(

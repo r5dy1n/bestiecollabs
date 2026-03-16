@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\SocialConnection;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class FindCreatorController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return Inertia::render('FindCreator/Index');
+        $query = $request->input('query');
+        $category = $request->input('category');
+
+        return Inertia::render('FindCreator/Index', [
+            'creators' => $this->fetchCreators($query, $category),
+            'filters' => ['query' => $query, 'category' => $category],
+        ]);
     }
 
     public function show(string $username): Response
@@ -44,6 +49,58 @@ class FindCreatorController extends Controller
             'username' => $username,
             'profiles' => $profiles,
         ]);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function fetchCreators(?string $query = null, ?string $category = null): array
+    {
+        return SocialConnection::query()
+            ->where('status', 'connected')
+            ->when($query, function ($q) use ($query): void {
+                $q->where(function ($q) use ($query): void {
+                    $q->where('handle', 'like', "%{$query}%")
+                        ->orWhereHas('user.creator', function ($q) use ($query): void {
+                            $q->where('creator_name', 'like', "%{$query}%")
+                                ->orWhere('description', 'like', "%{$query}%");
+                        });
+                });
+            })
+            ->when($category, function ($q) use ($category): void {
+                $q->whereHas('user.creator', function ($q) use ($category): void {
+                    $q->where('category_primary', $category);
+                });
+            })
+            ->with(['user.creator'])
+            ->get()
+            ->groupBy('user_id')
+            ->map(function ($userConnections): array {
+                $firstConnection = $userConnections->first();
+                $creator = $firstConnection->user?->creator;
+
+                $platforms = $userConnections->mapWithKeys(function (SocialConnection $connection): array {
+                    $meta = $connection->platform_metadata ?? [];
+
+                    return [$connection->platform => [
+                        'handle' => $connection->handle,
+                        'followers' => $connection->followers ?? null,
+                        'engagement_rate' => $connection->engagement_rate
+                            ?? $meta['engagement_metrics']['engagement_rate']
+                            ?? null,
+                    ]];
+                });
+
+                $primaryMeta = $firstConnection->platform_metadata ?? [];
+
+                return [
+                    'username' => $firstConnection->handle,
+                    'display_name' => $creator?->creator_name ?? $firstConnection->user?->name ?? $firstConnection->handle,
+                    'bio' => $creator?->description,
+                    'profile_picture_url' => $primaryMeta['profile_picture_url'] ?? null,
+                    'platforms' => $platforms,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     /** @return array<string, mixed> */
@@ -97,65 +154,5 @@ class FindCreatorController extends Controller
             ],
             default => [],
         };
-    }
-
-    public function search(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'query' => ['required', 'string', 'min:3', 'max:255'],
-            'category' => ['nullable', 'string', 'in:fashion,beauty,fitness,food,travel,tech,gaming,business,education,entertainment,music,sports,parenting,diy,home'],
-        ]);
-
-        $query = $validated['query'];
-        $category = $validated['category'] ?? null;
-
-        $connections = SocialConnection::query()
-            ->where('status', 'connected')
-            ->where(function ($q) use ($query): void {
-                $q->where('handle', 'like', "%{$query}%")
-                    ->orWhereHas('user.creator', function ($q) use ($query): void {
-                        $q->where('creator_name', 'like', "%{$query}%")
-                            ->orWhere('description', 'like', "%{$query}%");
-                    });
-            })
-            ->when($category, function ($q) use ($category): void {
-                $q->whereHas('user.creator', function ($q) use ($category): void {
-                    $q->where('category_primary', $category);
-                });
-            })
-            ->with(['user.creator'])
-            ->get()
-            ->groupBy('user_id');
-
-        $results = $connections->map(function ($userConnections): array {
-            $firstConnection = $userConnections->first();
-            $creator = $firstConnection->user?->creator;
-            $metadata = $creator?->social_metadata ?? [];
-
-            $platforms = $userConnections->mapWithKeys(function (SocialConnection $connection) use ($metadata): array {
-                $platformMeta = $metadata[$connection->platform] ?? [];
-
-                return [$connection->platform => [
-                    'handle' => $connection->handle,
-                    'followers' => $connection->followers ?? $platformMeta['follower_count'] ?? $platformMeta['subscriber_count'] ?? null,
-                    'engagement_rate' => $connection->engagement_rate ?? $platformMeta['engagement_metrics']['engagement_rate'] ?? null,
-                ]];
-            });
-
-            $primaryMeta = $metadata[$firstConnection->platform] ?? [];
-
-            return [
-                'username' => $firstConnection->handle,
-                'display_name' => $creator?->creator_name ?? $firstConnection->user?->name ?? $firstConnection->handle,
-                'bio' => $creator?->description,
-                'profile_picture_url' => $primaryMeta['profile_picture_url'] ?? null,
-                'platforms' => $platforms,
-            ];
-        })->values();
-
-        return response()->json([
-            'success' => true,
-            'results' => $results,
-        ]);
     }
 }
