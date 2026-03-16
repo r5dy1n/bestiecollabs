@@ -118,6 +118,7 @@ class FindCreatorController extends Controller
                 'follower_count' => $meta['followers_count'] ?? $connection->followers,
                 'post_count' => $meta['media_count'] ?? $connection->posts_count,
                 'engagement_metrics' => $meta['engagement_metrics'] ?? null,
+                'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'tiktok' => [
                 'username' => $meta['display_name'] ?? $connection->handle,
@@ -129,6 +130,7 @@ class FindCreatorController extends Controller
                 'video_count' => $meta['video_count'] ?? $connection->posts_count,
                 'total_likes' => $meta['likes_count'] ?? null,
                 'engagement_metrics' => $meta['engagement_metrics'] ?? null,
+                'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'twitter' => [
                 'username' => $meta['username'] ?? $connection->handle,
@@ -139,6 +141,7 @@ class FindCreatorController extends Controller
                 'following_count' => $meta['public_metrics']['following_count'] ?? null,
                 'tweet_count' => $meta['public_metrics']['tweet_count'] ?? $connection->posts_count,
                 'engagement_metrics' => $meta['engagement_metrics'] ?? null,
+                'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'youtube' => [
                 'username' => $meta['snippet']['customUrl'] ?? $connection->handle,
@@ -151,6 +154,7 @@ class FindCreatorController extends Controller
                 'total_views' => isset($meta['statistics']['viewCount']) ? (int) $meta['statistics']['viewCount'] : null,
                 'channel_id' => $meta['id'] ?? null,
                 'engagement_metrics' => $meta['engagement_metrics'] ?? null,
+                'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             default => [],
         };

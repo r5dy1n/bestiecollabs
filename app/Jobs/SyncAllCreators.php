@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Creator;
+use App\Models\SocialConnection;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -29,9 +30,18 @@ class SyncAllCreators implements ShouldQueue
             ->orWhereNotNull('tiktok_url')
             ->orWhereNotNull('youtube_url')
             ->orWhereNotNull('twitter_url')
-            ->chunk($batchSize, function ($creators) {
+            ->chunk($batchSize, function ($creators): void {
                 foreach ($creators as $creator) {
                     SyncCreatorSocialMedia::dispatch($creator);
+                }
+            });
+
+        SocialConnection::query()
+            ->where('status', 'connected')
+            ->whereNotNull('access_token')
+            ->chunk($batchSize, function ($connections): void {
+                foreach ($connections as $connection) {
+                    SyncSocialConnectionStats::dispatch($connection);
                 }
             });
     }

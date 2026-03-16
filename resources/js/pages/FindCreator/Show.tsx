@@ -17,6 +17,19 @@ const platforms: { id: Platform; name: string; icon: string }[] = [
     { id: 'twitter', name: 'Twitter/X', icon: '\uD83D\uDC26' },
 ];
 
+function timeAgo(isoString: string): string {
+    const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    return `${months}mo ago`;
+}
+
 function formatNumber(num: number | undefined): string {
     if (!num) return '0';
     if (num >= 1000000) {
@@ -148,15 +161,22 @@ function PlatformContent({ platform, profile }: { platform: Platform; profile: C
                         )}
                     </div>
 
-                    {/* External link */}
-                    <a
-                        href={getExternalProfileUrl(platform, profile)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 rounded-lg bg-black px-6 py-2.5 text-center font-semibold text-white transition-all hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
-                    >
-                        View on {platformMeta?.name}
-                    </a>
+                    {/* External link + last synced */}
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                        <a
+                            href={getExternalProfileUrl(platform, profile)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-lg bg-black px-6 py-2.5 text-center font-semibold text-white transition-all hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
+                        >
+                            View on {platformMeta?.name}
+                        </a>
+                        {profile.last_synced && (
+                            <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                                Synced {timeAgo(profile.last_synced)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
