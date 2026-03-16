@@ -62,7 +62,7 @@ class SocialAccountsController extends Controller
         $scopes = self::PLATFORM_SCOPES[$platform] ?? [];
 
         return Socialite::driver($driver)
-            ->scopes($scopes)
+            ->setScopes($scopes)
             ->redirect();
     }
 
