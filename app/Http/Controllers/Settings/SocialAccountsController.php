@@ -75,9 +75,10 @@ class SocialAccountsController extends Controller
         }
 
         $driver = self::PLATFORM_DRIVERS[$platform];
+        $scopes = self::PLATFORM_SCOPES[$platform] ?? [];
 
         try {
-            $socialUser = Socialite::driver($driver)->user();
+            $socialUser = Socialite::driver($driver)->setScopes($scopes)->user();
         } catch (\Exception $e) {
             return redirect()
                 ->route('social-accounts.edit')
