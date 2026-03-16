@@ -107,7 +107,7 @@ class SyncSocialConnectionStats implements ShouldQueue
     {
         $response = Http::withToken($token)
             ->get('https://open.tiktokapis.com/v2/user/info/', [
-                'fields' => 'open_id,union_id,avatar_url,display_name,bio_description,follower_count,following_count,likes_count,video_count',
+                'fields' => 'open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,follower_count,following_count,likes_count,video_count',
             ]);
 
         if ($response->failed()) {
