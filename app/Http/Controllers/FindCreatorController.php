@@ -111,7 +111,7 @@ class FindCreatorController extends Controller
 
         return match ($platform) {
             'instagram' => [
-                'username' => $meta['username'] ?? $connection->handle,
+                'username' => $connection->handle,
                 'display_name' => $meta['username'] ?? $connection->handle,
                 'bio' => $meta['biography'] ?? $creator?->description,
                 'profile_picture_url' => $meta['profile_picture_url'] ?? null,
@@ -121,7 +121,7 @@ class FindCreatorController extends Controller
                 'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'tiktok' => [
-                'username' => $meta['display_name'] ?? $connection->handle,
+                'username' => $connection->handle,
                 'display_name' => $meta['display_name'] ?? $connection->handle,
                 'bio' => $meta['bio_description'] ?? $creator?->description,
                 'profile_picture_url' => $meta['avatar_url'] ?? null,
@@ -133,7 +133,7 @@ class FindCreatorController extends Controller
                 'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'twitter' => [
-                'username' => $meta['username'] ?? $connection->handle,
+                'username' => $connection->handle,
                 'display_name' => $meta['name'] ?? $connection->handle,
                 'bio' => $meta['description'] ?? $creator?->description,
                 'profile_picture_url' => $meta['profile_image_url'] ?? null,
@@ -144,7 +144,7 @@ class FindCreatorController extends Controller
                 'last_synced' => $connection->last_sync_at?->toISOString(),
             ],
             'youtube' => [
-                'username' => $meta['snippet']['customUrl'] ?? $connection->handle,
+                'username' => $connection->handle,
                 'channel_name' => $meta['snippet']['title'] ?? null,
                 'display_name' => $meta['snippet']['title'] ?? $connection->handle,
                 'bio' => $meta['snippet']['description'] ?? $creator?->description,
