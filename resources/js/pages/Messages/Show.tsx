@@ -32,9 +32,10 @@ interface Props {
     messages: Message[];
     otherParty: OtherParty;
     otherPartyType: string;
+    currentIdentityId: string;
 }
 
-export default function Show({ messages, otherParty, otherPartyType }: Props) {
+export default function Show({ messages, otherParty, otherPartyType, currentIdentityId }: Props) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -73,23 +74,6 @@ export default function Show({ messages, otherParty, otherPartyType }: Props) {
         });
     };
 
-    const getCurrentUserId = () => {
-        if (messages.length === 0) return null;
-
-        // Find a message that has the current user as sender or recipient
-        const firstMessage = messages[0];
-
-        // If sender is not the other party, then sender is current user
-        if (firstMessage.sender_id !== otherParty.id) {
-            return firstMessage.sender_id;
-        }
-
-        // Otherwise current user is the recipient
-        return firstMessage.recipient_id;
-    };
-
-    const currentUserId = getCurrentUserId();
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Message with ${otherParty.brand_name || otherParty.creator_name}`} />
@@ -116,7 +100,7 @@ export default function Show({ messages, otherParty, otherPartyType }: Props) {
                 <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-sidebar-border/70 bg-white  ">
                     <div className="flex-1 space-y-4 overflow-y-auto p-6">
                         {messages.map((message) => {
-                            const isCurrentUser = message.sender_id === currentUserId;
+                            const isCurrentUser = message.sender_id === currentIdentityId;
 
                             return (
                                 <div

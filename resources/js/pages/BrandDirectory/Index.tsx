@@ -4,6 +4,19 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 
+interface DirectoryCard {
+    shop_name: string;
+    price_range: string;
+    items_sold_30day: number;
+    customer_gender: string | null;
+    match_score: string;
+}
+
+interface TopCreatorMatch {
+    creator_name: string;
+    match_score: string;
+}
+
 interface Brand {
     id: string;
     brand_name: string;
@@ -13,11 +26,12 @@ interface Brand {
     category_tertiary: string | null;
     instagram_url: string | null;
     tiktok_url: string | null;
-    description: string;
     customer_age_min: number;
     customer_age_max: number;
-    us_based: boolean;
     bestie_score: string;
+    connection_status: 'connected' | 'unconnected';
+    directory_card: DirectoryCard | null;
+    top_creator_matches: TopCreatorMatch[];
 }
 
 interface PaginatedData {

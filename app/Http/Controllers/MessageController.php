@@ -13,53 +13,70 @@ use Inertia\Response;
 class MessageController extends Controller
 {
     /**
+     * Resolve the current user's messaging identity (Brand or Creator).
+     */
+    private function resolveIdentity(Request $request): Brand|Creator|null
+    {
+        $user = $request->user();
+
+        if ($user->isBrand()) {
+            return $user->brand;
+        }
+
+        if ($user->isCreator()) {
+            return $user->creator;
+        }
+
+        return null;
+    }
+
+    /**
      * Display the user's message inbox with all conversations.
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
+        $identity = $this->resolveIdentity($request);
+        $identityType = $request->user()->isBrand() ? 'Brand' : 'Creator';
 
-        // Get all unique conversations (grouped by the other party)
+        if (! $identity) {
+            return Inertia::render('Messages/Index', ['conversations' => []]);
+        }
+
         $conversations = Message::query()
-            ->where(function ($query) use ($user) {
-                $query->where('sender_id', $user->id)
-                    ->where('sender_type', get_class($user))
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('recipient_id', $user->id)
-                            ->where('recipient_type', get_class($user));
+            ->where(function ($query) use ($identity, $identityType) {
+                $query->where('sender_id', $identity->id)
+                    ->where('sender_type', $identityType)
+                    ->orWhere(function ($q) use ($identity, $identityType) {
+                        $q->where('recipient_id', $identity->id)
+                            ->where('recipient_type', $identityType);
                     });
             })
             ->with(['sender', 'recipient'])
             ->latest()
             ->get()
-            ->groupBy(function ($message) use ($user) {
-                // Group by the "other" party in the conversation
-                if ($message->sender_id === $user->id && $message->sender_type === get_class($user)) {
+            ->groupBy(function ($message) use ($identity, $identityType) {
+                if ($message->sender_id === $identity->id && $message->sender_type === $identityType) {
                     return $message->recipient_type.':'.$message->recipient_id;
                 }
 
                 return $message->sender_type.':'.$message->sender_id;
             })
-            ->map(function ($messages) use ($user) {
-                $latestMessage = $messages->first();
+            ->map(function ($messages) use ($identity, $identityType) {
+                $latest = $messages->first();
+                $isSender = $latest->sender_id === $identity->id && $latest->sender_type === $identityType;
+                $otherParty = $isSender ? $latest->recipient : $latest->sender;
+                $otherPartyType = $isSender ? $latest->recipient_type : $latest->sender_type;
 
-                // Determine the other party
-                if ($latestMessage->sender_id === $user->id && $latestMessage->sender_type === get_class($user)) {
-                    $otherParty = $latestMessage->recipient;
-                } else {
-                    $otherParty = $latestMessage->sender;
-                }
-
-                // Count unread messages from this conversation
-                $unreadCount = $messages->where('recipient_id', $user->id)
-                    ->where('recipient_type', get_class($user))
+                $unreadCount = $messages
+                    ->where('recipient_id', $identity->id)
+                    ->where('recipient_type', $identityType)
                     ->where('read_status', false)
                     ->count();
 
                 return [
                     'other_party' => $otherParty,
-                    'other_party_type' => get_class($otherParty),
-                    'latest_message' => $latestMessage,
+                    'other_party_type' => $otherPartyType,
+                    'latest_message' => $latest,
                     'unread_count' => $unreadCount,
                 ];
             })
@@ -71,37 +88,39 @@ class MessageController extends Controller
     }
 
     /**
-     * Display a conversation with a specific user.
+     * Display a conversation with a specific Brand or Creator.
      */
     public function show(Request $request, string $type, string $id): Response
     {
-        $user = $request->user();
+        $identity = $this->resolveIdentity($request);
+        $identityType = $request->user()->isBrand() ? 'Brand' : 'Creator';
 
-        // Load the other party
+        if (! $identity) {
+            abort(403, 'You need a brand or creator profile to view messages.');
+        }
+
         $otherParty = $type === 'Brand' ? Brand::findOrFail($id) : Creator::findOrFail($id);
 
-        // Get all messages in this conversation
         $messages = Message::query()
-            ->where(function ($query) use ($user, $otherParty, $type) {
-                $query->where('sender_id', $user->id)
-                    ->where('sender_type', get_class($user))
+            ->where(function ($query) use ($identity, $identityType, $otherParty, $type) {
+                $query->where('sender_id', $identity->id)
+                    ->where('sender_type', $identityType)
                     ->where('recipient_id', $otherParty->id)
                     ->where('recipient_type', $type);
             })
-            ->orWhere(function ($query) use ($user, $otherParty, $type) {
+            ->orWhere(function ($query) use ($identity, $identityType, $otherParty, $type) {
                 $query->where('sender_id', $otherParty->id)
                     ->where('sender_type', $type)
-                    ->where('recipient_id', $user->id)
-                    ->where('recipient_type', get_class($user));
+                    ->where('recipient_id', $identity->id)
+                    ->where('recipient_type', $identityType);
             })
             ->with(['sender', 'recipient'])
             ->oldest()
             ->get();
 
-        // Mark messages as read
         Message::query()
-            ->where('recipient_id', $user->id)
-            ->where('recipient_type', get_class($user))
+            ->where('recipient_id', $identity->id)
+            ->where('recipient_type', $identityType)
             ->where('sender_id', $otherParty->id)
             ->where('sender_type', $type)
             ->where('read_status', false)
@@ -111,6 +130,7 @@ class MessageController extends Controller
             'messages' => $messages,
             'otherParty' => $otherParty,
             'otherPartyType' => $type,
+            'currentIdentityId' => $identity->id,
         ]);
     }
 
@@ -125,21 +145,21 @@ class MessageController extends Controller
             'message_content' => ['required', 'string', 'max:5000'],
         ]);
 
-        $user = $request->user();
+        $identity = $this->resolveIdentity($request);
 
-        // Load recipient to verify it exists
+        if (! $identity) {
+            return redirect()->back()->with('error', 'You need a brand or creator profile to send messages.');
+        }
+
+        $senderType = $request->user()->isBrand() ? 'Brand' : 'Creator';
+
         $recipient = $validated['recipient_type'] === 'Brand'
             ? Brand::findOrFail($validated['recipient_id'])
             : Creator::findOrFail($validated['recipient_id']);
 
-        // Check if recipient can receive direct messages (7+ outreach attempts)
-        if (! $recipient->canReceiveDirectMessages()) {
-            return redirect()->back()->with('error', 'This contact must have 7+ outreach attempts before direct messaging is enabled.');
-        }
-
         Message::create([
-            'sender_id' => $user->id,
-            'sender_type' => get_class($user),
+            'sender_id' => $identity->id,
+            'sender_type' => $senderType,
             'recipient_id' => $recipient->id,
             'recipient_type' => $validated['recipient_type'],
             'message_content' => $validated['message_content'],

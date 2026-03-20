@@ -81,7 +81,7 @@ function formatNumber(num: number): string {
 }
 
 export default function Show({ creator, topMatches, socialConnections }: Props) {
-    const { auth } = usePage().props as { auth: { user: { id: string } | null } };
+    const { auth } = usePage().props as { auth: { user: { id: string; user_type: string } | null } };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -528,7 +528,7 @@ export default function Show({ creator, topMatches, socialConnections }: Props) 
                             </div>
                         </div>
 
-                        {auth.user && (
+                        {auth.user?.user_type === 'brand' && (
                             <div className="rounded-xl border border-sidebar-border/70 bg-white p-6  ">
                                 <Link
                                     href={`/messages/Creator/${creator.id}`}

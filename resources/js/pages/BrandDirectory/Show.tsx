@@ -35,7 +35,7 @@ interface Props {
 }
 
 export default function Show({ brand, topMatches }: Props) {
-    const { auth } = usePage().props as { auth: { user: { id: string } | null } };
+    const { auth } = usePage().props as { auth: { user: { id: string; user_type: string } | null } };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -198,7 +198,7 @@ export default function Show({ brand, topMatches }: Props) {
                             </div>
                         </div>
 
-                        {auth.user && (
+                        {auth.user?.user_type === 'creator' && (
                             <div className="rounded-xl border border-sidebar-border/70 bg-white p-6">
                                 <Link
                                     href={`/messages/Brand/${brand.id}`}

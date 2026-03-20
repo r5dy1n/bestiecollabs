@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Brand extends Model
 {
@@ -52,6 +53,11 @@ class Brand extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function directoryCard(): HasOne
+    {
+        return $this->hasOne(BrandDirectoryCard::class);
     }
 
     public function matches(): HasMany
