@@ -38,9 +38,100 @@ export interface User {
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     is_admin?: boolean;
+    user_type?: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+export interface BrandBillingAccount {
+    id: string;
+    brand_id: string;
+    stripe_customer_id: string | null;
+    payment_method_type: 'card' | 'us_bank_account' | null;
+    payment_method_id: string | null;
+    ach_discount_eligible: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface BrandInvoice {
+    id: string;
+    brand_id: string;
+    billing_period_start: string;
+    billing_period_end: string;
+    subtotal: string;
+    discount_amount: string;
+    processing_fee: string;
+    total: string;
+    status: 'draft' | 'open' | 'paid' | 'failed' | 'void';
+    stripe_payment_intent_id: string | null;
+    paid_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface BrandInvoiceLineItem {
+    id: string;
+    invoice_id: string;
+    collaboration_id: string | null;
+    description: string;
+    type: 'charge' | 'fee' | 'credit' | 'refund' | 'adjustment';
+    amount: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatorPayoutAccount {
+    id: string;
+    creator_id: string;
+    stripe_account_id: string | null;
+    tier: 'Tier1' | 'Tier2' | 'Tier3';
+    hold_period_days: number;
+    onboarding_complete: boolean;
+    charges_enabled: boolean;
+    payouts_enabled: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatorPayout {
+    id: string;
+    creator_id: string;
+    amount: string;
+    fee: string;
+    net_amount: string;
+    type: 'standard' | 'instant';
+    status: 'pending' | 'processing' | 'paid' | 'failed';
+    stripe_payout_id: string | null;
+    stripe_transfer_id: string | null;
+    failure_message: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatorEarning {
+    id: string;
+    creator_id: string;
+    collaboration_id: string;
+    payout_id: string | null;
+    amount: string;
+    status: 'pending_approval' | 'held' | 'available' | 'paid_out' | 'reversed';
+    approved_at: string | null;
+    hold_until: string | null;
+    reversed_at: string | null;
+    reversal_reason: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface PlatformEngagementMetrics {

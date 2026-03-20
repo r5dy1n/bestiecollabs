@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Store, Users, MessageSquare, Handshake, Send, Search, LogIn } from 'lucide-react';
+import { LayoutGrid, Store, Users, MessageSquare, Handshake, Send, Search, LogIn, CreditCard, Banknote, DollarSign, ArrowUpRight, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const publicNavItems: NavItem[] = [
@@ -55,6 +55,22 @@ const authNavItems: NavItem[] = [
     },
 ];
 
+const brandNavItems: NavItem[] = [
+    {
+        title: 'Payments',
+        href: '/payments',
+        icon: CreditCard,
+    },
+];
+
+const creatorNavItems: NavItem[] = [
+    {
+        title: 'Payouts',
+        href: '/payouts',
+        icon: Banknote,
+    },
+];
+
 const adminNavItems: NavItem[] = [
     {
         title: 'Manage Brands',
@@ -76,12 +92,29 @@ const adminNavItems: NavItem[] = [
         href: '/admin/outreach',
         icon: Send,
     },
+    {
+        title: 'Earnings',
+        href: '/admin/earnings',
+        icon: DollarSign,
+    },
+    {
+        title: 'Payouts',
+        href: '/admin/payouts',
+        icon: ArrowUpRight,
+    },
+    {
+        title: 'Invoices',
+        href: '/admin/invoices',
+        icon: FileText,
+    },
 ];
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const isAuthenticated = !!auth?.user;
     const isAdmin = auth?.user?.is_admin;
+    const isBrand = auth?.user?.user_type === 'brand';
+    const isCreator = auth?.user?.user_type === 'creator';
 
     const mainNavItems = isAuthenticated ? authNavItems : publicNavItems;
 
@@ -101,6 +134,8 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {isBrand && <NavMain items={brandNavItems} label="Billing" />}
+                {isCreator && <NavMain items={creatorNavItems} label="Earnings" />}
                 {isAdmin && <NavMain items={adminNavItems} label="Admin" />}
             </SidebarContent>
 

@@ -59,6 +59,14 @@ return [
         'redirect' => '/settings/social-accounts/callback/twitter',
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'instant_payout_fee_percent' => env('STRIPE_INSTANT_PAYOUT_FEE_PERCENT', 1.5),
+        'ach_discount_percent' => env('STRIPE_ACH_DISCOUNT_PERCENT', 1.0),
+    ],
+
     'shopify' => [
         'api_key' => env('SHOPIFY_API_KEY'),
         'api_secret' => env('SHOPIFY_API_SECRET'),

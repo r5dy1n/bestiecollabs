@@ -3,6 +3,8 @@
 namespace App\Actions\Fortify;
 
 use App\Enums\UserType;
+use App\Models\Brand;
+use App\Models\Creator;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -33,11 +35,35 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'user_type' => $input['user_type'],
             'password' => $input['password'],
         ]);
+
+        match ($user->user_type) {
+            UserType::Brand => Brand::create([
+                'user_id' => $user->id,
+                'brand_name' => $user->name,
+                'website_url' => '',
+                'category_primary' => '',
+                'description' => '',
+                'customer_age_min' => 0,
+                'customer_age_max' => 0,
+            ]),
+            UserType::Creator => Creator::create([
+                'user_id' => $user->id,
+                'creator_name' => $user->name,
+                'category_primary' => '',
+                'description' => '',
+                'language' => 'en',
+                'follower_age_min' => 0,
+                'follower_age_max' => 0,
+            ]),
+            default => null,
+        };
+
+        return $user;
     }
 }

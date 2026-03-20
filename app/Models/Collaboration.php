@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Collaboration extends Model
 {
@@ -89,9 +91,54 @@ class Collaboration extends Model
 
     public function addRevenue(float $amount): void
     {
-        $this->total_revenue += $amount;
-        $this->commission_earned += $this->calculateCommission($amount);
-        $this->save();
+        DB::transaction(function () use ($amount): void {
+            $commissionDelta = $this->calculateCommission($amount);
+
+            $this->total_revenue += $amount;
+            $this->commission_earned += $commissionDelta;
+            $this->save();
+
+            $periodStart = now()->startOfMonth()->toDateString();
+            $periodEnd = now()->endOfMonth()->toDateString();
+
+            $invoice = BrandInvoice::firstOrCreate(
+                [
+                    'brand_id' => $this->brand_id,
+                    'billing_period_start' => $periodStart,
+                    'status' => 'draft',
+                ],
+                [
+                    'billing_period_end' => $periodEnd,
+                ]
+            );
+
+            BrandInvoiceLineItem::create([
+                'invoice_id' => $invoice->id,
+                'collaboration_id' => $this->id,
+                'description' => "Commission for collaboration #{$this->id}",
+                'type' => 'charge',
+                'amount' => $commissionDelta,
+            ]);
+
+            CreatorEarning::create([
+                'creator_id' => $this->creator_id,
+                'collaboration_id' => $this->id,
+                'amount' => $commissionDelta,
+                'status' => 'pending_approval',
+            ]);
+
+            $invoice->recalculateTotals();
+        });
+    }
+
+    public function earnings(): HasMany
+    {
+        return $this->hasMany(CreatorEarning::class);
+    }
+
+    public function invoiceLineItems(): HasMany
+    {
+        return $this->hasMany(BrandInvoiceLineItem::class);
     }
 
     public function markAsCompleted(): void

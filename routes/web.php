@@ -20,6 +20,8 @@ Route::get('/contact', function () {
 
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
+Route::post('/stripe/webhook', [App\Http\Controllers\StripeWebhookController::class, 'handle'])->name('stripe.webhook');
+
 Route::prefix('brands')->name('brands.')->group(function () {
     Route::get('/', [App\Http\Controllers\BrandDirectoryController::class, 'index'])->name('index');
     Route::get('/{brand}', [App\Http\Controllers\BrandDirectoryController::class, 'show'])->name('show');
@@ -53,6 +55,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{type}/{id}', [App\Http\Controllers\MessageController::class, 'show'])->name('show');
         Route::post('/', [App\Http\Controllers\MessageController::class, 'store'])->name('store');
     });
+
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
+        Route::post('/setup-intent', [App\Http\Controllers\PaymentController::class, 'createSetupIntent'])->name('setup-intent');
+        Route::post('/payment-method', [App\Http\Controllers\PaymentController::class, 'attachPaymentMethod'])->name('attach');
+        Route::delete('/payment-method', [App\Http\Controllers\PaymentController::class, 'deletePaymentMethod'])->name('detach');
+    });
+
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\PayoutController::class, 'index'])->name('index');
+        Route::get('/onboard', [App\Http\Controllers\PayoutController::class, 'onboard'])->name('onboard');
+        Route::get('/onboard/return', [App\Http\Controllers\PayoutController::class, 'onboardReturn'])->name('onboard.return');
+        Route::get('/onboard/refresh', [App\Http\Controllers\PayoutController::class, 'onboardRefresh'])->name('onboard.refresh');
+        Route::post('/instant', [App\Http\Controllers\PayoutController::class, 'requestInstant'])->name('instant');
+    });
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -83,6 +100,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/', [App\Http\Controllers\Admin\OutreachController::class, 'store'])->name('store');
         Route::get('/{outreach}', [App\Http\Controllers\Admin\OutreachController::class, 'show'])->name('show');
         Route::patch('/{outreach}/status', [App\Http\Controllers\Admin\OutreachController::class, 'updateStatus'])->name('update-status');
+    });
+
+    Route::prefix('earnings')->name('earnings.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\CreatorEarningController::class, 'index'])->name('index');
+        Route::post('/{earning}/approve', [App\Http\Controllers\Admin\CreatorEarningController::class, 'approve'])->name('approve');
+        Route::post('/{earning}/reverse', [App\Http\Controllers\Admin\CreatorEarningController::class, 'reverse'])->name('reverse');
+    });
+
+    Route::get('payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
+
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\BrandInvoiceController::class, 'index'])->name('index');
+        Route::get('/{invoice}', [App\Http\Controllers\Admin\BrandInvoiceController::class, 'show'])->name('show');
+        Route::post('/{invoice}/charge', [App\Http\Controllers\Admin\BrandInvoiceController::class, 'charge'])->name('charge');
+        Route::post('/{invoice}/void', [App\Http\Controllers\Admin\BrandInvoiceController::class, 'void'])->name('void');
     });
 
     Route::prefix('collaborations')->name('collaborations.')->group(function () {

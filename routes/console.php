@@ -9,3 +9,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('social:sync --all')->daily();
+
+Schedule::job(new \App\Jobs\TransitionHeldEarningsToAvailable)->daily();
+Schedule::job(new \App\Jobs\ProcessCreatorPayouts)->cron('0 9 1 * *');
+Schedule::job(new \App\Jobs\ProcessCreatorPayouts)->cron('0 9 15 * *');
+Schedule::job(new \App\Jobs\ProcessMonthlyBrandBilling)->cron('0 8 1 * *');

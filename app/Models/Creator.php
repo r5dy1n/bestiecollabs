@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Creator extends Model
 {
@@ -99,6 +100,21 @@ class Creator extends Model
     public function activeCollaborations()
     {
         return $this->collaborations()->where('status', 'active');
+    }
+
+    public function payoutAccount(): HasOne
+    {
+        return $this->hasOne(CreatorPayoutAccount::class);
+    }
+
+    public function earnings(): HasMany
+    {
+        return $this->hasMany(CreatorEarning::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(CreatorPayout::class);
     }
 
     public function getConnectionStatusAttribute(): string

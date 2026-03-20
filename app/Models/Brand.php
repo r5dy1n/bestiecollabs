@@ -92,6 +92,16 @@ class Brand extends Model
         return $this->collaborations()->where('status', 'active');
     }
 
+    public function billingAccount(): HasOne
+    {
+        return $this->hasOne(BrandBillingAccount::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(BrandInvoice::class);
+    }
+
     public function getConnectionStatusAttribute(): string
     {
         $activeCollaboration = $this->collaborations()

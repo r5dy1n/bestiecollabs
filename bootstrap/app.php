@@ -22,8 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class
+            AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: ['stripe/webhook']);
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
